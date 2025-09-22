@@ -130,7 +130,7 @@
   - Test SDK with real enterprise integration scenarios
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 12. Implement comprehensive property-based testing and validation
+- [-] 12. Implement comprehensive property-based testing and validation
   - Create CDC roundtrip property: chunk(data) → compress → decompress → data
   - Add chunk boundary stability tests across data insertion/deletion scenarios
   - Implement corpus consistency properties with concurrent access patterns

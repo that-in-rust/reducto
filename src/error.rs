@@ -179,11 +179,11 @@ pub enum ReductoError {
         timeout_seconds: u64,
     },
 
-    #[error("Performance contract violation: {operation} took {actual_duration_ms}ms (limit: {limit_ms}ms)")]
+    #[error("Performance contract violation: {metric} - expected {expected}, actual {actual}")]
     PerformanceContractViolation {
-        operation: String,
-        actual_duration_ms: u64,
-        limit_ms: u64,
+        metric: String,
+        expected: String,
+        actual: String,
     },
 
     // === Resource Exhaustion Errors ===

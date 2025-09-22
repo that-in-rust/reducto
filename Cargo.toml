@@ -68,6 +68,7 @@ criterion = "0.5"     # Benchmarking framework
 tempfile = "3.0"      # Temporary files for testing
 tokio-test = "0.4"    # Async testing utilities
 tokio = { version = "1.0", features = ["full"] }  # Async runtime for tests
+fastrand = "2.0"      # Fast random number generation for tests
 
 # Benchmarks will be added in later tasks
 # [[bench]]
