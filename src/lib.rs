@@ -17,6 +17,7 @@ pub mod types;
 pub mod stubs;
 pub mod cdc_chunker;
 pub mod rolling_hash;
+pub mod corpus_manager;
 
 #[cfg(test)]
 pub mod contract_tests;
@@ -31,6 +32,7 @@ pub use types::{
 };
 pub use cdc_chunker::{FastCDCChunker, GearHasher};
 pub use rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics};
+pub use corpus_manager::{EnterpriseCorpusManager, PersistentStorage, InMemoryStorage, StorageStats};
 
 /// Prelude module for convenient imports
 pub mod prelude {
@@ -44,5 +46,6 @@ pub mod prelude {
         },
         cdc_chunker::{FastCDCChunker, GearHasher},
         rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics},
+        corpus_manager::{EnterpriseCorpusManager, PersistentStorage, InMemoryStorage, StorageStats},
     };
 }
