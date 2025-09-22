@@ -840,9 +840,9 @@ mod tests {
         
         // Verify that performance-related errors exist
         let perf_error = ReductoError::PerformanceContractViolation {
-            operation: "hash_init".to_string(),
-            actual_duration_ms: 100,
-            limit_ms: 50,
+            metric: "hash_init_duration".to_string(),
+            expected: "< 50ms".to_string(),
+            actual: "100ms".to_string(),
         };
         
         assert_eq!(perf_error.category(), "performance");

@@ -21,6 +21,7 @@ pub mod corpus_manager;
 pub mod compressor;
 pub mod serializer;
 pub mod security_manager;
+pub mod cli_error;
 
 #[cfg(feature = "metrics")]
 pub mod metrics_collector;

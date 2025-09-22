@@ -1,0 +1,96 @@
+# Reducto Enterprise Configuration Example
+# 
+# This file demonstrates the complete configuration options available
+# for the Reducto CLI. Copy this file to ~/.config/reducto/config.toml
+# or specify with --config flag.
+
+[corpus]
+# Default repository URL for fetching corpora
+default_repository = "https://corpus.example.com/api/v1"
+
+# Local directory for storing corpora
+storage_dir = "~/.cache/reducto/corpora"
+
+# Maximum cache size in MB
+cache_size_mb = 2048
+
+# Repository timeout in seconds
+timeout_seconds = 300
+
+[compression]
+# Default compression level (1-22, higher = better compression)
+default_level = 19
+
+# Default chunk size in KB (4-64)
+default_chunk_size = 8
+
+# Show progress bars by default
+show_progress = true
+
+# Collect metrics by default
+collect_metrics = false
+
+[security]
+# Verify cryptographic signatures on corpora
+verify_signatures = true
+
+# Enable encryption for sensitive data
+enable_encryption = false
+
+# Path for audit logs (optional)
+# audit_log_path = "/var/log/reducto/audit.log"
+
+[metrics]
+# Enable metrics collection
+enabled = false
+
+# Export format: "json", "prometheus", "csv"
+export_format = "json"
+
+# Metrics retention period in days
+retention_days = 30
+
+[stream]
+# Default buffer size for stream processing in KB
+buffer_size_kb = 64
+
+# Verify integrity of streamed data
+verify_integrity = true
+
+# Stream operation timeout in seconds
+timeout_seconds = 60
+
+# Enterprise-specific settings
+[enterprise]
+# Maximum concurrent operations
+max_concurrent_ops = 4
+
+# Enable detailed logging
+detailed_logging = false
+
+# Custom corpus repositories
+[[enterprise.repositories]]
+name = "production"
+url = "https://prod-corpus.company.com/api/v1"
+auth_token_env = "REDUCTO_PROD_TOKEN"
+priority = 1
+
+[[enterprise.repositories]]
+name = "staging"
+url = "https://staging-corpus.company.com/api/v1"
+auth_token_env = "REDUCTO_STAGING_TOKEN"
+priority = 2
+
+# Performance tuning
+[performance]
+# Number of worker threads (0 = auto-detect)
+worker_threads = 0
+
+# Memory limit in MB (0 = unlimited)
+memory_limit_mb = 0
+
+# Enable SIMD optimizations
+enable_simd = true
+
+# Chunk processing batch size
+chunk_batch_size = 1000

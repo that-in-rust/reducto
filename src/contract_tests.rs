@@ -351,9 +351,9 @@ mod tests {
     fn test_performance_contract_violations() {
         // Test that performance contract violations are properly categorized
         let perf_error = ReductoError::PerformanceContractViolation {
-            operation: "hash_init".to_string(),
-            actual_duration_ms: 1000,
-            limit_ms: 100,
+            metric: "hash_init_duration".to_string(),
+            expected: "< 100ms".to_string(),
+            actual: "1000ms".to_string(),
         };
         assert_eq!(perf_error.category(), "performance");
         assert!(!perf_error.is_recoverable(), "Performance violations indicate fundamental issues");

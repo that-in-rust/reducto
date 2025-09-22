@@ -11,8 +11,8 @@ license = "MIT"
 default = []
 enterprise = ["rocksdb"]
 security = ["ed25519-dalek", "aes-gcm"]
-metrics = ["prometheus", "sysinfo", "tokio", "tokio-stream"]
-sdk = ["tokio", "reqwest", "lru"]
+metrics = ["prometheus", "sysinfo", "tokio-stream"]
+sdk = ["reqwest", "lru"]
 
 [dependencies]
 # L1 Core: Fundamental Rust features (no external dependencies)
@@ -45,7 +45,7 @@ prometheus = { version = "0.13", optional = true }       # Metrics collection an
 sysinfo = { version = "0.28", optional = true }          # System performance monitoring
 
 # SDK dependencies (feature-gated)
-tokio = { version = "1.0", features = ["full"], optional = true }  # Async runtime for SDK
+tokio = { version = "1.0", features = ["full"] }  # Async runtime for SDK and CLI
 reqwest = { version = "0.11", features = ["json", "stream"], optional = true }  # HTTP client
 lru = { version = "0.12", optional = true }  # LRU cache for corpus caching
 
@@ -62,6 +62,18 @@ rand_core = "0.5"     # Core random traits
 subtle = "2.4"        # Constant-time comparison for security
 num_cpus = "1.0"      # CPU count for parallel compression
 
+# CLI dependencies
+clap = { version = "4.0", features = ["derive", "env", "color"] }  # Command-line argument parsing
+indicatif = "0.17"    # Progress bars and spinners
+console = "0.15"      # Terminal utilities and colors
+dialoguer = "0.10"    # Interactive prompts
+dirs = "5.0"          # Standard directories
+toml = "0.8"          # Configuration file parsing
+env_logger = "0.10"   # Logging implementation
+log = "0.4"           # Logging facade
+tempfile = "3.0"      # Temporary files for validation
+
+
 [dev-dependencies]
 proptest = "1.0"      # Property-based testing
 criterion = "0.5"     # Benchmarking framework
@@ -69,6 +81,8 @@ tempfile = "3.0"      # Temporary files for testing
 tokio-test = "0.4"    # Async testing utilities
 tokio = { version = "1.0", features = ["full"] }  # Async runtime for tests
 fastrand = "2.0"      # Fast random number generation for tests
+assert_cmd = "2.0"    # CLI testing utilities
+predicates = "3.0"    # Assertion predicates for testing
 
 # Benchmarks will be added in later tasks
 # [[bench]]
@@ -86,3 +100,7 @@ panic = "abort"
 
 [profile.bench]
 debug = true
+
+[[bin]]
+name = "reducto"
+path = "src/bin/reducto.rs"
