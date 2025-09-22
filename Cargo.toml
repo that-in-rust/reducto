@@ -47,8 +47,14 @@ sysinfo = { version = "0.28", optional = true }          # System performance mo
 # SDK dependencies (feature-gated)
 tokio = { version = "1.0", features = ["full"], optional = true }  # Async runtime for SDK
 
+# Additional dependencies for security module
+serde_json = "1.0"    # JSON serialization for audit logs
+rand = "0.7"          # Random number generation (compatible with ed25519-dalek)
+rand_core = "0.5"     # Core random traits
+
 # Cryptographic utilities
 subtle = "2.4"        # Constant-time comparison for security
+num_cpus = "1.0"      # CPU count for parallel compression
 
 [dev-dependencies]
 proptest = "1.0"      # Property-based testing

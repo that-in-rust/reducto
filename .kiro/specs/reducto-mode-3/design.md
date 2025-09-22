@@ -19,6 +19,8 @@ The system employs a three-tier strategy:
 
 ### High-Level System Components
 
+> **Note**: All diagrams follow vertical orientation (top-to-bottom) for consistency. See `.kiro/steering/diagram-conventions.md` for detailed guidelines.
+
 ```mermaid
 graph TB
     subgraph "Enterprise Data Pipeline"

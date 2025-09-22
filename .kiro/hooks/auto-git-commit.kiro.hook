@@ -1,0 +1,20 @@
+{
+  "enabled": false,
+  "name": "Auto Git Commit & Push",
+  "description": "Automatically executes git add, commit with timestamp, and push to origin when files are modified",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "src/**/*.rs",
+      "Cargo.toml",
+      "Cargo.lock",
+      "README.md",
+      "refDocs/**/*.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the following git commands in sequence:\n1. git add .\n2. git commit -m \"progress at $(date +%Y%m%d%H%M%S)\"\n3. git push origin"
+  }
+}

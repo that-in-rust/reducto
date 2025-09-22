@@ -18,6 +18,9 @@ pub mod stubs;
 pub mod cdc_chunker;
 pub mod rolling_hash;
 pub mod corpus_manager;
+pub mod compressor;
+pub mod serializer;
+pub mod security_manager;
 
 #[cfg(test)]
 pub mod contract_tests;
@@ -33,6 +36,9 @@ pub use types::{
 pub use cdc_chunker::{FastCDCChunker, GearHasher};
 pub use rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics};
 pub use corpus_manager::{EnterpriseCorpusManager, InMemoryStorage, StorageStats, StorageBackend};
+pub use compressor::{Compressor, CompressionStats};
+pub use serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats};
+pub use security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity};
 
 /// Prelude module for convenient imports
 pub mod prelude {
@@ -47,5 +53,8 @@ pub mod prelude {
         cdc_chunker::{FastCDCChunker, GearHasher},
         rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics},
         corpus_manager::{EnterpriseCorpusManager, InMemoryStorage, StorageStats, StorageBackend},
+        compressor::{Compressor, CompressionStats},
+        serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats},
+        security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity},
     };
 }

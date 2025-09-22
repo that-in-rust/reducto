@@ -4,6 +4,8 @@
 
 ALL DIAGRAMS WILL BE IN MERMAID ONLY TO ENSURE EASE WITH GITHUB - DO NOT SKIP THAT
 
+**DIAGRAM ORIENTATION**: All Mermaid diagrams should preferably use vertical orientation (top-to-bottom) for consistency and readability. See diagram-conventions.md for detailed guidelines.
+
 ## The Essence: Executable Specifications Drive Everything
 
 **Core Truth**: Traditional user stories fail LLMs because they're designed for human conversation. LLMs need executable blueprints, not ambiguous narratives.

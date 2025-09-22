@@ -45,6 +45,21 @@ pub enum ReductoError {
         source: bincode::Error,
     },
 
+    #[error("Serialization failed for {component}: {cause}")]
+    SerializationFailed { component: String, cause: String },
+
+    #[error("Deserialization failed for {component}: {cause}")]
+    DeserializationFailed { component: String, cause: String },
+
+    #[error("Header too large: {size} bytes (max: {max_size} bytes)")]
+    HeaderTooLarge { size: usize, max_size: usize },
+
+    #[error("Instruction stream too large: {size} bytes (max: {max_size} bytes)")]
+    InstructionStreamTooLarge { size: usize, max_size: usize },
+
+    #[error("Integrity check failed: expected {expected}, calculated {calculated}")]
+    IntegrityCheckFailed { expected: String, calculated: String },
+
     // === Compression and Decompression Errors ===
     #[error("Compression failed: {algorithm} - {source}")]
     Compression {
@@ -59,6 +74,12 @@ pub enum ReductoError {
         #[source]
         source: Box<dyn std::error::Error + Send + Sync>,
     },
+
+    #[error("Compression failed: {algorithm} - {cause}")]
+    CompressionFailed { algorithm: String, cause: String },
+
+    #[error("Decompression failed: {algorithm} - {cause}")]
+    DecompressionFailed { algorithm: String, cause: String },
 
     // === File Format and Validation Errors ===
     #[error("Invalid file format: {reason}")]
@@ -326,6 +347,11 @@ impl ReductoError {
             Self::InternalError { .. }
             | Self::UnimplementedFeature { .. }
             | Self::AssertionFailed { .. } => "internal",
+
+            Self::SerializationFailed { .. } | Self::DeserializationFailed { .. } => "serialization",
+            Self::HeaderTooLarge { .. } | Self::InstructionStreamTooLarge { .. } => "format",
+            Self::IntegrityCheckFailed { .. } => "validation",
+            Self::CompressionFailed { .. } | Self::DecompressionFailed { .. } => "compression",
         }
     }
 }
