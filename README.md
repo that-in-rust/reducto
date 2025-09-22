@@ -964,24 +964,4 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 Reducto is dual-licensed:
 - **Open Source**: Apache 2.0 License for community use
 - **Enterprise**: Commercial license with additional features and support
-
-## 🗺️ Roadmap
-
-### Q1 2024
-- [ ] GPU acceleration for compression
-- [ ] Advanced corpus analytics
-- [ ] Multi-cloud corpus distribution
-
-### Q2 2024
-- [ ] Real-time streaming compression
-- [ ] Machine learning-based optimization
-- [ ] Enhanced security features
-
-### Q3 2024
-- [ ] Edge computing support
-- [ ] Advanced monitoring dashboard
-- [ ] Performance optimization toolkit
-
----
-
-**Ready to transform your data logistics?** [Get started with Reducto today](https://reducto.com/get-started) or [contact our enterprise team](mailto:enterprise@reducto.com) for a custom deployment consultation.
+istics?** [Get started with Reducto today](https://reducto.com/get-started) or [contact our enterprise team](mailto:enterprise@reducto.com) for a custom deployment consultation.
