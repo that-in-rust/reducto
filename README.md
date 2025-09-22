@@ -1,8 +1,8 @@
 # Reducto Mode 3
 
-[![Build Status](https://github.com/that-in-rust/reducto/workflows/CI/badge.svg)](https://github.com/your-org/reducto/actions)
-[![Security Audit](https://github.com/that-in-rust/reducto/workflows/Security/badge.svg)](https://github.com/your-org/reducto/actions)
-[![Performance](https://github.com/that-in-rust/reducto/workflows/Performance/badge.svg)](https://github.com/your-org/reducto/actions)
+[![Build Status](https://github.com/that-in-rust/reducto/workflows/CI/badge.svg)](https://github.com/that-in-rust/reducto/actions)
+[![Security Audit](https://github.com/that-in-rust/reducto/workflows/Security/badge.svg)](https://github.com/that-in-rust/reducto/actions)
+[![Performance](https://github.com/that-in-rust/reducto/workflows/Performance/badge.svg)](https://github.com/that-in-rust/reducto/actions)
 
 Differential compression system using Content-Defined Chunking (CDC) and Reference Corpora. Achieves 10x-100x compression ratios for data with high redundancy patterns.
 
