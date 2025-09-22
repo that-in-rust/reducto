@@ -1333,10 +1333,11 @@ async fn handle_info(app: &CliApp, args: InfoArgs) -> Result<()> {
         println!("  Build Date: {}", std::env::var("BUILD_DATE").unwrap_or_else(|_| "unknown".to_string()));
         
         #[cfg(feature = "metrics")]
-        if let Ok(sys) = sysinfo::System::new_all() {
-            println!("  OS: {} {}", sys.name().unwrap_or("Unknown"), sys.version().unwrap_or("Unknown"));
+        {
             println!("  CPU Cores: {}", num_cpus::get());
-            println!("  Total Memory: {:.1} GB", sys.total_memory() as f64 / 1024.0 / 1024.0 / 1024.0);
+            // System info would be available with proper sysinfo usage
+            println!("  OS: {}", std::env::consts::OS);
+            println!("  Architecture: {}", std::env::consts::ARCH);
         }
     }
     

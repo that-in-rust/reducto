@@ -72,6 +72,7 @@ toml = "0.8"          # Configuration file parsing
 env_logger = "0.10"   # Logging implementation
 log = "0.4"           # Logging facade
 tempfile = "3.0"      # Temporary files for validation
+regex = "1.0"         # Regular expressions for security scanning
 
 
 [dev-dependencies]
@@ -84,14 +85,9 @@ fastrand = "2.0"      # Fast random number generation for tests
 assert_cmd = "2.0"    # CLI testing utilities
 predicates = "3.0"    # Assertion predicates for testing
 
-# Benchmarks will be added in later tasks
-# [[bench]]
-# name = "rolling_hash"
-# harness = false
-# 
-# [[bench]]
-# name = "compression"
-# harness = false
+[[bench]]
+name = "criterion_benchmarks"
+harness = false
 
 [profile.release]
 lto = true
@@ -104,3 +100,11 @@ debug = true
 [[bin]]
 name = "reducto"
 path = "src/bin/reducto.rs"
+
+[[bin]]
+name = "performance_regression_detection"
+path = "src/bin/performance_regression_detection.rs"
+
+[[bin]]
+name = "security_audit"
+path = "src/bin/security_audit.rs"

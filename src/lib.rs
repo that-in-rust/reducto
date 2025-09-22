@@ -22,6 +22,8 @@ pub mod compressor;
 pub mod serializer;
 pub mod security_manager;
 pub mod cli_error;
+pub mod simd_optimizations;
+pub mod const_optimizations;
 
 #[cfg(feature = "metrics")]
 pub mod metrics_collector;
@@ -49,6 +51,12 @@ pub use corpus_manager::{EnterpriseCorpusManager, InMemoryStorage, StorageStats,
 pub use compressor::{Compressor, CompressionStats};
 pub use serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats};
 pub use security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity};
+pub use simd_optimizations::{SimdHashCalculator, SimdGearHasher};
+pub use const_optimizations::{
+    ConstChunkConfig, ConstRollingHasher, ConstCDCChunker, ConstGearHasher, ConstDataChunk,
+    StandardChunker, LargeChunker, SmallChunker, PrecisionChunker,
+    StandardRollingHasher, LargeRollingHasher,
+};
 
 #[cfg(feature = "metrics")]
 pub use metrics_collector::{EnterpriseMetricsCollector, MetricsConfig, DryRunAnalysis, MetricsSnapshot, EconomicSummary};
@@ -80,6 +88,12 @@ pub mod prelude {
         compressor::{Compressor, CompressionStats},
         serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats},
         security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity},
+        simd_optimizations::{SimdHashCalculator, SimdGearHasher},
+        const_optimizations::{
+            ConstChunkConfig, ConstRollingHasher, ConstCDCChunker, ConstGearHasher, ConstDataChunk,
+            StandardChunker, LargeChunker, SmallChunker, PrecisionChunker,
+            StandardRollingHasher, LargeRollingHasher,
+        },
     };
     
     #[cfg(feature = "metrics")]
