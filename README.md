@@ -2,11 +2,15 @@
 
 Differential compression system using Content-Defined Chunking (CDC) and Reference Corpora. Achieves 10x-100x compression ratios for data with high redundancy patterns.
 
+**How it works**: Like a master librarian who notices that 90% of new books contain chapters already written, Reducto builds a reference collection of data patterns. Instead of storing redundant information, it simply notes "page 47 of reference volume XII." The result: your 2GB VM image becomes a 20MB instruction set.
+
 ## Quick Start
 
 ```bash
-# Install
-cargo install reducto
+# Install from source
+git clone https://github.com/that-in-rust/reducto.git
+cd reducto
+cargo build --release
 
 # Build reference corpus
 reducto corpus build --input /data/reference --output corpus.rc
