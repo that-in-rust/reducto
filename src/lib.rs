@@ -22,6 +22,15 @@ pub mod compressor;
 pub mod serializer;
 pub mod security_manager;
 
+#[cfg(feature = "metrics")]
+pub mod metrics_collector;
+
+#[cfg(feature = "sdk")]
+pub mod ecosystem_decompressor;
+
+#[cfg(feature = "sdk")]
+pub mod sdk;
+
 #[cfg(test)]
 pub mod contract_tests;
 
@@ -40,6 +49,20 @@ pub use compressor::{Compressor, CompressionStats};
 pub use serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats};
 pub use security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity};
 
+#[cfg(feature = "metrics")]
+pub use metrics_collector::{EnterpriseMetricsCollector, MetricsConfig, DryRunAnalysis, MetricsSnapshot, EconomicSummary};
+
+#[cfg(feature = "sdk")]
+pub use ecosystem_decompressor::{EcosystemDecompressor, CorpusRepository, CorpusSource, DecompressionResult, DecompressionMetrics, EcosystemConfig, StandardCompressor, ZstdFallbackCompressor, CacheStats};
+
+#[cfg(feature = "sdk")]
+pub use sdk::{
+    ReductoSDK, SDKConfig, TimeoutConfig, StreamConfig, SecurityConfig, PipelineConfig,
+    CompressionResult, CompressionMetrics, StreamStats, TarFilter, SshWrapper, CloudCliPlugin, CloudProvider,
+    // C FFI exports
+    CSDKConfig, CCompressionResult, CDecompressionResult, CResult, CErrorCode,
+};
+
 /// Prelude module for convenient imports
 pub mod prelude {
     pub use crate::{
@@ -56,5 +79,17 @@ pub mod prelude {
         compressor::{Compressor, CompressionStats},
         serializer::{AdvancedSerializer, SerializerConfig, CompressionProfile, SerializationStats},
         security_manager::{EnterpriseSecurityManager, KeyManagementConfig, AuditLogger, AuditEvent, OperationResult, AuditSeverity},
+    };
+    
+    #[cfg(feature = "metrics")]
+    pub use crate::metrics_collector::{EnterpriseMetricsCollector, MetricsConfig, DryRunAnalysis, MetricsSnapshot, EconomicSummary};
+    
+    #[cfg(feature = "sdk")]
+    pub use crate::ecosystem_decompressor::{EcosystemDecompressor, CorpusRepository, CorpusSource, DecompressionResult, DecompressionMetrics, EcosystemConfig, StandardCompressor, ZstdFallbackCompressor, CacheStats};
+    
+    #[cfg(feature = "sdk")]
+    pub use crate::sdk::{
+        ReductoSDK, SDKConfig, TimeoutConfig, StreamConfig, SecurityConfig, PipelineConfig,
+        CompressionResult, CompressionMetrics, StreamStats, TarFilter, SshWrapper, CloudCliPlugin, CloudProvider,
     };
 }
