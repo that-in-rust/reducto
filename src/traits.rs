@@ -6,7 +6,7 @@
 
 use crate::{
     error::Result,
-    types::{BlockOffset, CorpusBlock, CorpusId, ReductoInstruction, WeakHash},
+    types::{BlockOffset, CorpusChunk, CorpusId, ReductoInstruction, WeakHash},
 };
 use std::path::Path;
 
@@ -112,33 +112,33 @@ pub trait HashProvider: Send + Sync {
 /// - `verify_match()`: O(1) time for hash comparison
 /// - Collision handling: graceful degradation with many collisions
 pub trait BlockMatcher: Send + Sync {
-    /// Find candidate blocks with matching weak hash
+    /// Find candidate chunks with matching weak hash
     ///
     /// # Arguments
     /// * `weak_hash` - Weak hash to search for in the manifest
     ///
     /// # Returns
-    /// * `Ok(Vec<CorpusBlock>)` - All blocks with matching weak hash
+    /// * `Ok(Vec<CorpusChunk>)` - All chunks with matching weak hash
     /// * `Err(ReductoError)` - Lookup failed or manifest corrupted
     ///
     /// # Performance
     /// Average O(1) time, worst case O(n) with hash collisions
-    fn find_candidates(&self, weak_hash: WeakHash) -> Result<Vec<CorpusBlock>>;
+    fn find_candidates(&self, weak_hash: WeakHash) -> Result<Vec<CorpusChunk>>;
 
-    /// Verify if data matches a candidate block using strong hash
+    /// Verify if data matches a candidate chunk using strong hash
     ///
     /// # Arguments
-    /// * `data` - Block data to verify (must be BLOCK_SIZE bytes)
-    /// * `candidate` - Candidate block from corpus
+    /// * `data` - Chunk data to verify (variable size)
+    /// * `candidate` - Candidate chunk from corpus
     ///
     /// # Returns
-    /// * `Ok(true)` - Data matches candidate's strong hash
+    /// * `Ok(true)` - Data matches candidate's strong hash and size
     /// * `Ok(false)` - Data does not match
     /// * `Err(ReductoError)` - Verification failed
     ///
     /// # Performance
     /// Constant time hash comparison
-    fn verify_match(&self, data: &[u8], candidate: &CorpusBlock) -> Result<bool>;
+    fn verify_match(&self, data: &[u8], candidate: &CorpusChunk) -> Result<bool>;
 
     /// Get the total number of blocks in the manifest
     fn block_count(&self) -> usize;
@@ -342,6 +342,439 @@ pub trait InstructionWriter: Send + Sync {
 
     /// Cancel writing and clean up partial files
     fn cancel(&mut self) -> Result<()>;
+}
+
+// === Enterprise Trait Contracts ===
+
+/// Content-Defined Chunking trait for variable-size block processing
+///
+/// # Contract
+///
+/// ## Preconditions
+/// - `new()`: config must have valid chunk size parameters (min < target < max)
+/// - `chunk_data()`: input data must be non-empty
+/// - `finalize()`: chunker must have processed at least some data
+///
+/// ## Postconditions
+/// - `chunk_data()`: returns chunks with sizes within configured bounds (50%-200% of target)
+/// - `finalize()`: returns final chunk if any data remains
+/// - Chunk boundaries are content-defined and stable across identical inputs
+///
+/// ## Error Conditions
+/// - `ReductoError::InvalidConfiguration`: invalid chunk parameters
+/// - `ReductoError::HashComputationFailed`: boundary detection fails
+/// - `ReductoError::MemoryAllocationFailed`: insufficient memory for chunks
+///
+/// ## Performance Contracts
+/// - Boundary detection: O(1) time per byte processed
+/// - Chunk size variance: 50%-200% of target size
+/// - Memory usage: O(target_chunk_size) regardless of input size
+pub trait CDCChunker: Send + Sync {
+    /// Create a new CDC chunker with the specified configuration
+    ///
+    /// # Arguments
+    /// * `config` - Chunk configuration with size bounds and hash parameters
+    ///
+    /// # Returns
+    /// * `Ok(Self)` - Chunker successfully created
+    /// * `Err(ReductoError)` - Invalid configuration
+    fn new(config: crate::types::ChunkConfig) -> Result<Self> where Self: Sized;
+
+    /// Process input data and yield variable-size chunks
+    ///
+    /// # Arguments
+    /// * `data` - Input data to chunk
+    ///
+    /// # Returns
+    /// * `Ok(Vec<DataChunk>)` - Chunks with content-defined boundaries
+    /// * `Err(ReductoError)` - Chunking failed
+    ///
+    /// # Performance
+    /// O(n) time where n is input size, O(1) per byte
+    fn chunk_data(&mut self, data: &[u8]) -> Result<Vec<crate::types::DataChunk>>;
+
+    /// Finalize chunking and return any remaining data as final chunk
+    ///
+    /// # Returns
+    /// * `Ok(Option<DataChunk>)` - Final chunk if data remains
+    /// * `Err(ReductoError)` - Finalization failed
+    fn finalize(&mut self) -> Result<Option<crate::types::DataChunk>>;
+
+    /// Get current chunker statistics
+    ///
+    /// # Returns
+    /// * `Ok((chunks_processed, avg_chunk_size, boundary_count))` - Statistics
+    /// * `Err(ReductoError)` - Statistics unavailable
+    fn get_statistics(&self) -> Result<(usize, f64, usize)>;
+
+    /// Reset chunker state for processing new input
+    fn reset(&mut self);
+
+    /// Check if current position would be a chunk boundary
+    ///
+    /// # Arguments
+    /// * `hash` - Current hash value
+    ///
+    /// # Returns
+    /// True if this position should be a chunk boundary
+    fn is_boundary(&self, hash: u64) -> bool;
+}
+
+/// Corpus management trait for enterprise-scale reference corpus operations
+///
+/// # Contract
+///
+/// ## Preconditions
+/// - `build_corpus()`: input paths must exist and be readable
+/// - `optimize_corpus()`: analysis data must be representative of target workload
+/// - `get_candidates()`: corpus must be successfully built and indexed
+/// - `validate_corpus_integrity()`: corpus must be loaded
+///
+/// ## Postconditions
+/// - `build_corpus()`: creates immutable corpus with cryptographic signature
+/// - `optimize_corpus()`: provides actionable recommendations for corpus improvement
+/// - `get_candidates()`: returns all chunks matching weak hash
+/// - `validate_corpus_integrity()`: verifies cryptographic signatures and checksums
+///
+/// ## Error Conditions
+/// - `crate::error::CorpusError::NotFound`: corpus file doesn't exist
+/// - `crate::error::CorpusError::SignatureVerificationFailed`: corpus signature invalid
+/// - `crate::error::CorpusError::Storage`: persistent storage operations fail
+/// - `crate::error::CorpusError::OptimizationFailed`: corpus optimization fails
+/// - `crate::error::CorpusError::ConcurrencyConflict`: concurrent access conflict
+///
+/// ## Performance Contracts
+/// - `get_candidates()`: O(1) average time with persistent indexing
+/// - `build_corpus()`: supports datasets exceeding available memory
+/// - Concurrent access: thread-safe for multiple readers, single writer
+pub trait CorpusManager: Send + Sync {
+    /// Build corpus from input data with CDC chunking
+    ///
+    /// # Arguments
+    /// * `input_paths` - Paths to files for corpus construction
+    /// * `config` - CDC configuration for chunking
+    ///
+    /// # Returns
+    /// * `Ok(CorpusMetadata)` - Corpus successfully built with metadata
+    /// * `Err(CorpusError)` - Corpus construction failed
+    ///
+    /// # Performance
+    /// Supports datasets larger than available memory via persistent storage
+    async fn build_corpus(
+        &mut self,
+        input_paths: &[std::path::PathBuf],
+        config: crate::types::ChunkConfig,
+    ) -> Result<crate::types::CorpusMetadata>;
+
+    /// Generate optimized "Golden Corpus" from dataset analysis
+    ///
+    /// # Arguments
+    /// * `analysis_data` - Representative dataset for optimization
+    ///
+    /// # Returns
+    /// * `Ok(OptimizationRecommendations)` - Recommendations for corpus improvement
+    /// * `Err(CorpusError)` - Optimization analysis failed
+    ///
+    /// # Performance
+    /// Performs frequency analysis and deduplication potential assessment
+    async fn optimize_corpus(
+        &mut self,
+        analysis_data: &[std::path::PathBuf],
+    ) -> Result<crate::types::OptimizationRecommendations>;
+
+    /// Build persistent index for datasets exceeding memory
+    ///
+    /// # Arguments
+    /// * `corpus_path` - Path to corpus file
+    ///
+    /// # Returns
+    /// * `Ok(())` - Index successfully built
+    /// * `Err(CorpusError)` - Index construction failed
+    ///
+    /// # Performance
+    /// Uses LSM trees or RocksDB for memory-efficient indexing
+    async fn build_persistent_index(&mut self, corpus_path: &std::path::Path) -> Result<()>;
+
+    /// Lookup chunks with collision handling
+    ///
+    /// # Arguments
+    /// * `weak_hash` - Weak hash to search for
+    ///
+    /// # Returns
+    /// * `Ok(Option<Vec<CorpusChunk>>)` - Matching chunks or None
+    /// * `Err(CorpusError)` - Lookup failed
+    ///
+    /// # Performance
+    /// O(1) average time with hash table lookup
+    fn get_candidates(&self, weak_hash: WeakHash) -> Result<Option<Vec<CorpusChunk>>>;
+
+    /// Verify chunk match with constant-time comparison
+    ///
+    /// # Arguments
+    /// * `chunk` - Chunk data to verify
+    /// * `candidate` - Candidate from corpus
+    ///
+    /// # Returns
+    /// * `Ok(bool)` - True if chunks match
+    /// * `Err(CorpusError)` - Verification failed
+    ///
+    /// # Performance
+    /// Constant-time comparison to prevent timing attacks
+    fn verify_match(&self, chunk: &[u8], candidate: &CorpusChunk) -> Result<bool>;
+
+    /// Validate corpus integrity with cryptographic verification
+    ///
+    /// # Returns
+    /// * `Ok(())` - Corpus integrity verified
+    /// * `Err(CorpusError)` - Integrity check failed
+    ///
+    /// # Performance
+    /// Verifies signatures and checksums for all corpus components
+    fn validate_corpus_integrity(&self) -> Result<()>;
+
+    /// Prune stale blocks based on usage statistics
+    ///
+    /// # Arguments
+    /// * `retention_policy` - Policy for determining which blocks to prune
+    ///
+    /// # Returns
+    /// * `Ok(PruneStats)` - Statistics about pruning operation
+    /// * `Err(CorpusError)` - Pruning failed
+    ///
+    /// # Performance
+    /// Analyzes usage patterns and removes infrequently accessed blocks
+    async fn prune_corpus(
+        &mut self,
+        retention_policy: crate::types::RetentionPolicy,
+    ) -> Result<crate::types::PruneStats>;
+}
+
+/// Security management trait for cryptographic operations and compliance
+///
+/// # Contract
+///
+/// ## Preconditions
+/// - `sign_corpus()`: corpus data must be complete and valid
+/// - `verify_corpus_signature()`: signature must be from trusted source
+/// - `encrypt_output()`: data must be non-empty
+/// - `decrypt_input()`: encrypted data must be valid format
+/// - `log_corpus_access()`: audit logging must be enabled
+///
+/// ## Postconditions
+/// - `sign_corpus()`: creates cryptographically secure signature
+/// - `verify_corpus_signature()`: validates signature authenticity
+/// - `encrypt_output()`: produces AES-GCM encrypted data
+/// - `decrypt_input()`: recovers original plaintext data
+/// - `log_corpus_access()`: creates immutable audit record
+///
+/// ## Error Conditions
+/// - `crate::error::SecurityError::SigningFailed`: cryptographic signing fails
+/// - `crate::error::SecurityError::VerificationFailed`: signature verification fails
+/// - `crate::error::SecurityError::EncryptionFailed`: encryption operation fails
+/// - `crate::error::SecurityError::DecryptionFailed`: decryption operation fails
+/// - `crate::error::SecurityError::KeyManagement`: key operations fail
+/// - `crate::error::SecurityError::AuditFailed`: audit logging fails
+///
+/// ## Performance Contracts
+/// - Signature operations: deterministic time based on data size
+/// - Encryption/decryption: streaming operations for large data
+/// - Audit logging: non-blocking with persistent storage
+pub trait SecurityManager: Send + Sync {
+    /// Cryptographically sign corpus files and indexes
+    ///
+    /// # Arguments
+    /// * `corpus_data` - Corpus data to sign
+    ///
+    /// # Returns
+    /// * `Ok(Signature)` - Cryptographic signature
+    /// * `Err(SecurityError)` - Signing failed
+    ///
+    /// # Performance
+    /// Uses ed25519 for fast signature generation
+    fn sign_corpus(&self, corpus_data: &[u8]) -> Result<crate::types::Signature>;
+
+    /// Validate signatures before using corpus data
+    ///
+    /// # Arguments
+    /// * `corpus_data` - Data to verify
+    /// * `signature` - Signature to validate
+    ///
+    /// # Returns
+    /// * `Ok(bool)` - True if signature is valid
+    /// * `Err(SecurityError)` - Verification failed
+    ///
+    /// # Performance
+    /// Fast ed25519 signature verification
+    fn verify_corpus_signature(
+        &self,
+        corpus_data: &[u8],
+        signature: &crate::types::Signature,
+    ) -> Result<bool>;
+
+    /// Encrypt compressed outputs for sensitive data
+    ///
+    /// # Arguments
+    /// * `data` - Plaintext data to encrypt
+    ///
+    /// # Returns
+    /// * `Ok(Vec<u8>)` - AES-GCM encrypted data
+    /// * `Err(SecurityError)` - Encryption failed
+    ///
+    /// # Performance
+    /// Streaming encryption for large datasets
+    fn encrypt_output(&self, data: &[u8]) -> Result<Vec<u8>>;
+
+    /// Decrypt compressed data
+    ///
+    /// # Arguments
+    /// * `encrypted_data` - AES-GCM encrypted data
+    ///
+    /// # Returns
+    /// * `Ok(Vec<u8>)` - Decrypted plaintext data
+    /// * `Err(SecurityError)` - Decryption failed
+    ///
+    /// # Performance
+    /// Streaming decryption with authentication
+    fn decrypt_input(&self, encrypted_data: &[u8]) -> Result<Vec<u8>>;
+
+    /// Log corpus access and modifications for compliance
+    ///
+    /// # Arguments
+    /// * `corpus_id` - ID of accessed corpus
+    /// * `operation` - Type of access operation
+    /// * `user` - User performing the operation
+    ///
+    /// # Returns
+    /// * `Ok(())` - Audit record created
+    /// * `Err(SecurityError)` - Audit logging failed
+    ///
+    /// # Performance
+    /// Non-blocking audit logging with persistent storage
+    fn log_corpus_access(
+        &self,
+        corpus_id: &str,
+        operation: crate::types::AccessOperation,
+        user: &str,
+    ) -> Result<()>;
+
+    /// Secure deletion with configurable retention
+    ///
+    /// # Arguments
+    /// * `file_path` - Path to file for secure deletion
+    ///
+    /// # Returns
+    /// * `Ok(())` - File securely deleted
+    /// * `Err(SecurityError)` - Secure deletion failed
+    ///
+    /// # Performance
+    /// Multiple-pass overwrite for secure deletion
+    async fn secure_delete(&self, file_path: &std::path::Path) -> Result<()>;
+}
+
+/// Metrics collection trait for observability and economic reporting
+///
+/// # Contract
+///
+/// ## Preconditions
+/// - `analyze_compression_potential()`: input and corpus files must exist
+/// - `export_metrics()`: metrics must be collected before export
+/// - `calculate_roi()`: usage statistics must cover sufficient time period
+///
+/// ## Postconditions
+/// - `analyze_compression_potential()`: provides accurate compression predictions
+/// - `export_metrics()`: produces valid Prometheus or JSON format
+/// - `calculate_roi()`: calculates quantified cost savings and ROI
+///
+/// ## Error Conditions
+/// - `crate::error::MetricsError::CollectionFailed`: metrics collection fails
+/// - `crate::error::MetricsError::ExportFailed`: metrics export fails
+/// - `crate::error::MetricsError::AnalysisFailed`: analysis computation fails
+/// - `crate::error::MetricsError::InsufficientData`: insufficient data for ROI calculation
+///
+/// ## Performance Contracts
+/// - `analyze_compression_potential()`: dry-run analysis without actual compression
+/// - `export_metrics()`: efficient serialization to standard formats
+/// - Real-time metrics: low-latency collection with minimal overhead
+pub trait MetricsCollector: Send + Sync {
+    /// Dry run analysis for compression prediction
+    ///
+    /// # Arguments
+    /// * `input_path` - Path to input file for analysis
+    /// * `corpus_path` - Path to reference corpus
+    ///
+    /// # Returns
+    /// * `Ok(CompressionAnalysis)` - Predicted compression metrics
+    /// * `Err(MetricsError)` - Analysis failed
+    ///
+    /// # Performance
+    /// Performs analysis without actual compression for speed
+    async fn analyze_compression_potential(
+        &self,
+        input_path: &std::path::Path,
+        corpus_path: &std::path::Path,
+    ) -> Result<crate::types::CompressionAnalysis>;
+
+    /// Export metrics in standard formats
+    ///
+    /// # Arguments
+    /// * `format` - Export format (Prometheus, JSON, etc.)
+    ///
+    /// # Returns
+    /// * `Ok(String)` - Formatted metrics data
+    /// * `Err(MetricsError)` - Export failed
+    ///
+    /// # Performance
+    /// Efficient serialization with minimal memory allocation
+    async fn export_metrics(&self, format: crate::types::MetricsFormat) -> Result<String>;
+
+    /// Calculate ROI based on usage patterns
+    ///
+    /// # Arguments
+    /// * `usage_stats` - Historical usage statistics
+    ///
+    /// # Returns
+    /// * `Ok(EconomicReport)` - ROI analysis and cost savings
+    /// * `Err(MetricsError)` - ROI calculation failed
+    ///
+    /// # Performance
+    /// Analyzes bandwidth/storage savings and operational costs
+    fn calculate_roi(&self, usage_stats: &crate::types::UsageStats) -> Result<crate::types::EconomicReport>;
+
+    /// Record compression operation metrics
+    ///
+    /// # Arguments
+    /// * `metrics` - Compression operation metrics
+    ///
+    /// # Returns
+    /// * `Ok(())` - Metrics recorded successfully
+    /// * `Err(MetricsError)` - Recording failed
+    ///
+    /// # Performance
+    /// Low-latency recording with buffered writes
+    fn record_compression_metrics(&mut self, metrics: &crate::types::CompressionMetrics) -> Result<()>;
+
+    /// Record decompression operation metrics
+    ///
+    /// # Arguments
+    /// * `metrics` - Decompression operation metrics
+    ///
+    /// # Returns
+    /// * `Ok(())` - Metrics recorded successfully
+    /// * `Err(MetricsError)` - Recording failed
+    ///
+    /// # Performance
+    /// Low-latency recording with buffered writes
+    fn record_decompression_metrics(&mut self, metrics: &crate::types::DecompressionMetrics) -> Result<()>;
+
+    /// Get real-time performance metrics
+    ///
+    /// # Returns
+    /// * `Ok(PerformanceMetrics)` - Current performance statistics
+    /// * `Err(MetricsError)` - Metrics unavailable
+    ///
+    /// # Performance
+    /// Returns cached metrics for low-latency access
+    fn get_performance_metrics(&self) -> Result<crate::types::PerformanceMetrics>;
 }
 
 #[cfg(test)]

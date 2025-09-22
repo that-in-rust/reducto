@@ -5,6 +5,7 @@
 
 use std::io;
 use thiserror::Error;
+use chrono::{DateTime, Utc};
 
 /// Comprehensive error type covering all failure modes in Reducto Mode 3
 ///
@@ -329,6 +330,213 @@ impl ReductoError {
     }
 }
 
+// === Enterprise Module Error Hierarchies ===
+
+/// Corpus management specific errors
+#[derive(Error, Debug)]
+pub enum CorpusError {
+    #[error("Corpus not found: {corpus_id}")]
+    NotFound { corpus_id: String },
+    
+    #[error("Corpus signature verification failed for {corpus_id}")]
+    SignatureVerificationFailed { corpus_id: String },
+    
+    #[error("Corpus repository unreachable: {url} - {cause}")]
+    RepositoryUnreachable { url: String, cause: String },
+    
+    #[error("Persistent storage error: {operation} - {cause}")]
+    Storage { operation: String, cause: String },
+    
+    #[error("Optimization failed: {reason}")]
+    OptimizationFailed { reason: String },
+    
+    #[error("Corpus version incompatible: expected {expected}, found {found}")]
+    IncompatibleVersion { expected: String, found: String },
+    
+    #[error("Corpus index corruption detected: {details}")]
+    IndexCorruption { details: String },
+    
+    #[error("Concurrent access conflict for corpus {corpus_id}")]
+    ConcurrencyConflict { corpus_id: String },
+    
+    #[error("Corpus capacity exceeded: {current_size} bytes (limit: {max_size} bytes)")]
+    CapacityExceeded { current_size: u64, max_size: u64 },
+    
+    #[error("Chunk frequency analysis failed: {reason}")]
+    FrequencyAnalysisFailed { reason: String },
+}
+
+/// Security framework specific errors
+#[derive(Error, Debug)]
+pub enum SecurityError {
+    #[error("Cryptographic signing failed: {algorithm} - {cause}")]
+    SigningFailed { algorithm: String, cause: String },
+    
+    #[error("Signature verification failed for {resource_id}")]
+    VerificationFailed { resource_id: String },
+    
+    #[error("Encryption failed: {algorithm} - {cause}")]
+    EncryptionFailed { algorithm: String, cause: String },
+    
+    #[error("Decryption failed: {algorithm} - {cause}")]
+    DecryptionFailed { algorithm: String, cause: String },
+    
+    #[error("Key management error: {operation} - {cause}")]
+    KeyManagement { operation: String, cause: String },
+    
+    #[error("Audit logging failed: {event_type} - {cause}")]
+    AuditFailed { event_type: String, cause: String },
+    
+    #[error("Retention policy violation: {policy} - {details}")]
+    RetentionViolation { policy: String, details: String },
+    
+    #[error("Authentication failed for user {user_id}")]
+    AuthenticationFailed { user_id: String },
+    
+    #[error("Authorization denied: user {user_id} lacks permission {permission}")]
+    AuthorizationDenied { user_id: String, permission: String },
+    
+    #[error("Secure deletion failed for {resource}: {cause}")]
+    SecureDeletionFailed { resource: String, cause: String },
+}
+
+/// Metrics and observability specific errors
+#[derive(Error, Debug)]
+pub enum MetricsError {
+    #[error("Metrics collection failed for component {component}: {cause}")]
+    CollectionFailed { component: String, cause: String },
+    
+    #[error("Metrics export failed: format {format} - {cause}")]
+    ExportFailed { format: String, cause: String },
+    
+    #[error("Analysis error: {operation} - {cause}")]
+    AnalysisFailed { operation: String, cause: String },
+    
+    #[error("ROI calculation error: insufficient data for period {start} to {end}")]
+    InsufficientData { start: DateTime<Utc>, end: DateTime<Utc> },
+    
+    #[error("Performance monitoring failed: {metric} - {cause}")]
+    MonitoringFailed { metric: String, cause: String },
+    
+    #[error("Prometheus export error: {endpoint} - {cause}")]
+    PrometheusExportFailed { endpoint: String, cause: String },
+    
+    #[error("Metrics storage full: {current_size} bytes (limit: {max_size} bytes)")]
+    StorageFull { current_size: u64, max_size: u64 },
+    
+    #[error("Time series data corruption detected: {metric} at {timestamp}")]
+    TimeSeriesCorruption { metric: String, timestamp: DateTime<Utc> },
+}
+
+/// Storage abstraction specific errors
+#[derive(Error, Debug)]
+pub enum StorageError {
+    #[error("Database error: {operation} - {cause}")]
+    Database { operation: String, cause: String },
+    
+    #[error("Index corruption detected in {index_name}")]
+    IndexCorruption { index_name: String },
+    
+    #[error("Storage capacity exceeded: {used} bytes used of {limit} bytes")]
+    CapacityExceeded { used: u64, limit: u64 },
+    
+    #[error("Concurrent access conflict for resource {resource_id}")]
+    ConcurrencyConflict { resource_id: String },
+    
+    #[error("Transaction failed: {transaction_id} - {cause}")]
+    TransactionFailed { transaction_id: String, cause: String },
+    
+    #[error("Backup operation failed: {backup_id} - {cause}")]
+    BackupFailed { backup_id: String, cause: String },
+    
+    #[error("Recovery operation failed: {recovery_id} - {cause}")]
+    RecoveryFailed { recovery_id: String, cause: String },
+    
+    #[error("Replication lag exceeded threshold: {current_lag_ms}ms (max: {max_lag_ms}ms)")]
+    ReplicationLagExceeded { current_lag_ms: u64, max_lag_ms: u64 },
+}
+
+/// SDK and integration specific errors
+#[derive(Error, Debug)]
+pub enum SDKError {
+    #[error("Configuration error: {parameter} - {message}\nRemediation: {remediation}")]
+    Configuration { parameter: String, message: String, remediation: String },
+    
+    #[error("Corpus not found: {corpus_id}\nRemediation: Check corpus repositories or run 'reducto corpus fetch {corpus_id}'")]
+    CorpusNotFound { corpus_id: String },
+    
+    #[error("API version mismatch: client={client_version}, server={server_version}\nRemediation: Update SDK to version {required_version}")]
+    VersionMismatch { client_version: String, server_version: String, required_version: String },
+    
+    #[error("Stream processing error: {operation} - {cause}")]
+    StreamProcessing { operation: String, cause: String },
+    
+    #[error("Pipeline integration failed: {tool} - {cause}")]
+    PipelineIntegration { tool: String, cause: String },
+    
+    #[error("FFI error: {function} - {cause}")]
+    FFI { function: String, cause: String },
+    
+    #[error("Timeout in operation {operation}: {elapsed_ms}ms (limit: {timeout_ms}ms)")]
+    Timeout { operation: String, elapsed_ms: u64, timeout_ms: u64 },
+    
+    #[error("Rate limit exceeded: {current_rate} requests/sec (limit: {max_rate} requests/sec)")]
+    RateLimitExceeded { current_rate: f64, max_rate: f64 },
+}
+
+// Implement From conversions for the main ReductoError
+impl From<CorpusError> for ReductoError {
+    fn from(err: CorpusError) -> Self {
+        match err {
+            CorpusError::NotFound { corpus_id } => Self::CorpusNotFound { corpus_id },
+            CorpusError::IndexCorruption { details } => Self::CorruptedCorpusIndex { details },
+            CorpusError::OptimizationFailed { reason } => Self::ManifestBuildFailed { reason },
+            _ => Self::InternalError { message: format!("Corpus error: {}", err) },
+        }
+    }
+}
+
+impl From<SecurityError> for ReductoError {
+    fn from(err: SecurityError) -> Self {
+        Self::InternalError { message: format!("Security error: {}", err) }
+    }
+}
+
+impl From<MetricsError> for ReductoError {
+    fn from(err: MetricsError) -> Self {
+        Self::InternalError { message: format!("Metrics error: {}", err) }
+    }
+}
+
+impl From<StorageError> for ReductoError {
+    fn from(err: StorageError) -> Self {
+        match err {
+            StorageError::CapacityExceeded { used, limit } => Self::ResourceExhausted {
+                resource: "storage".to_string(),
+                current: used,
+                limit,
+            },
+            StorageError::ConcurrencyConflict { resource_id } => Self::ResourceContention {
+                resource: resource_id,
+            },
+            _ => Self::InternalError { message: format!("Storage error: {}", err) },
+        }
+    }
+}
+
+impl From<SDKError> for ReductoError {
+    fn from(err: SDKError) -> Self {
+        match err {
+            SDKError::CorpusNotFound { corpus_id } => Self::CorpusNotFound { corpus_id },
+            SDKError::Timeout { operation, elapsed_ms, timeout_ms: _ } => Self::OperationTimeout {
+                operation,
+                timeout_seconds: elapsed_ms / 1000,
+            },
+            _ => Self::InternalError { message: format!("SDK error: {}", err) },
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -365,5 +573,52 @@ mod tests {
         let display = format!("{}", error);
         assert!(display.contains("corpus-123"));
         assert!(display.contains("corpus-456"));
+    }
+
+    #[test]
+    fn test_corpus_error_conversion() {
+        let corpus_error = CorpusError::NotFound {
+            corpus_id: "test-corpus".to_string(),
+        };
+        let reducto_error: ReductoError = corpus_error.into();
+        
+        match reducto_error {
+            ReductoError::CorpusNotFound { corpus_id } => {
+                assert_eq!(corpus_id, "test-corpus");
+            }
+            _ => panic!("Expected CorpusNotFound variant"),
+        }
+    }
+
+    #[test]
+    fn test_security_error_display() {
+        let error = SecurityError::SigningFailed {
+            algorithm: "ed25519".to_string(),
+            cause: "key not found".to_string(),
+        };
+        let display = format!("{}", error);
+        assert!(display.contains("ed25519"));
+        assert!(display.contains("key not found"));
+    }
+
+    #[test]
+    fn test_metrics_error_with_timestamp() {
+        let now = Utc::now();
+        let error = MetricsError::InsufficientData {
+            start: now,
+            end: now,
+        };
+        let display = format!("{}", error);
+        assert!(display.contains("insufficient data"));
+    }
+
+    #[test]
+    fn test_sdk_error_remediation() {
+        let error = SDKError::CorpusNotFound {
+            corpus_id: "missing-corpus".to_string(),
+        };
+        let display = format!("{}", error);
+        assert!(display.contains("Remediation:"));
+        assert!(display.contains("reducto corpus fetch"));
     }
 }

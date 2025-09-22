@@ -1,137 +1,177 @@
 # Implementation Plan - Reducto Mode 3
 
-## Phase 1: L1 Core Architecture and Contracts (STUB → RED → GREEN)
+## Phase 1: L1 Core Architecture and CDC Foundation (STUB → RED → GREEN)
 
-- [x] 1. Define core trait contracts and error hierarchy
-  - Create Cargo.toml with L1 (core), L2 (std), L3 (external) dependency layers
-  - Define trait contracts for HashProvider, BlockMatcher, CorpusReader, InstructionWriter
-  - Implement exhaustive ReductoError hierarchy with thiserror for all failure modes
+- [x] 1. Define enterprise trait contracts and comprehensive error hierarchy
+  - Create Cargo.toml with enterprise dependencies (rocksdb, ring, prometheus, etc.)
+  - Define trait contracts for CDCChunker, CorpusManager, SecurityManager, MetricsCollector
+  - Implement exhaustive error hierarchies: ReductoError, CorpusError, SecurityError, MetricsError
   - Write STUB implementations for all traits returning unimplemented!()
   - Create contract tests with preconditions, postconditions, and error conditions
-  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - Add feature flags for enterprise, security, metrics, and SDK modules
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [x] 2. Implement L1 core data models with type safety
-  - Define newtype wrappers: BlockOffset(u64), WeakHash(u64), CorpusId(String)
-  - Create CorpusBlock struct with compile-time size validation
-  - Implement ReductoInstruction enum with exhaustive pattern matching
-  - Add ReductoHeader with magic bytes validation and version compatibility
-  - Write property-based tests for all data model invariants using proptest
-  - _Requirements: 1.5, 5.1, 5.2, 5.3, 5.4, 5.5_
+- [x] 2. Implement CDC core data models with variable-size chunks
+  - Define ChunkConfig struct with configurable CDC parameters (4KB-64KB range)
+  - Create CorpusChunk struct with variable size support and strong hash verification
+  - Implement ReductoInstruction enum with Reference{offset, size} and Residual variants
+  - Add enhanced ReductoHeader with corpus GUID, signature, CDC config, and integrity hash
+  - Create DataChunk struct for CDC processing with weak/strong hash pairs
+  - Write property-based tests for chunk size variance (50%-200% of target)
+  - Add compile-time validation for chunk configuration constraints
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.2, 5.1, 5.2, 5.3, 5.4_
 
-## Phase 2: L2 Standard Library Implementation (RED → GREEN)
+## Phase 2: Content-Defined Chunking Engine (RED → GREEN)
 
-- [ ] 3. Build rolling hash engine with performance contracts
-  - Create src/rolling_hash.rs module with RollingHasher struct
-  - Implement RollingHasher with explicit performance contracts in documentation
-  - Write failing tests for O(K) init() and O(1) roll() performance requirements
-  - Implement polynomial rolling hash with wrapping arithmetic for safety
-  - Add comprehensive unit tests validating hash consistency across window slides
-  - Create property-based tests ensuring rolling hash equals direct calculation
-  - Add benchmark tests validating <1μs per roll operation performance contract
-  - Replace StubHashProvider with production RollingHasher implementation
+- [x] 3. Implement FastCDC/Gear hashing for boundary detection
+  - Create src/cdc_chunker.rs module with CDCChunker struct
+  - Implement GearHasher with pre-computed gear table for O(1) boundary detection
+  - Write failing tests for chunk size variance within 50%-200% bounds
+  - Implement boundary detection using configurable hash mask (Gear hash & mask == 0)
+  - Add minimum/maximum chunk size enforcement to prevent degenerate cases
+  - Create comprehensive unit tests for boundary detection accuracy
+  - Add benchmark tests validating O(1) per-byte processing performance
+  - Test CDC robustness against insertion/deletion scenarios
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 3.1, 3.2_
+
+- [x] 4. Build dual-hash system for chunk identification
+  - Create src/rolling_hash.rs module with RollingHasher for content hashing
+  - Implement polynomial rolling hash with configurable window size
+  - Write failing tests for O(1) hash update performance requirements
+  - Add BLAKE3 strong hash calculation for chunk verification
+  - Implement constant-time hash comparison to prevent timing attacks
+  - Create property-based tests ensuring rolling hash consistency
+  - Add collision handling tests with controlled weak hash conflicts
+  - Integrate with CDCChunker for complete chunk processing pipeline
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 4. Create corpus indexing with dependency injection
-  - Create src/corpus_indexer.rs module with CorpusIndexer struct
-  - Implement production version using HashMap<WeakHash, Vec<CorpusBlock>>
-  - Create mock implementation for testing with controlled collision scenarios
-  - Write failing tests for O(1) lookup performance and collision handling
-  - Implement BLAKE3 strong hash verification with constant-time comparison
-  - Add RAII resource management for file handles with Drop implementation
-  - Replace StubBlockMatcher with production CorpusIndexer implementation
+## Phase 3: Enterprise Corpus Management (GREEN → REFACTOR)
+
+- [-] 5. Implement Corpus Management Toolkit with persistent storage
+  - Create src/corpus_manager.rs module with CorpusManager struct
+  - Implement RocksDB-based persistent storage for large corpora exceeding memory
+  - Write failing tests for corpus building with CDC chunking
+  - Add immutable corpus GUID generation and cryptographic signing
+  - Implement corpus optimization with frequency analysis and Golden Corpus generation
+  - Create corpus versioning, pruning, and integrity verification
+  - Add concurrent access support with thread-safe operations
+  - Test corpus management with datasets larger than available memory
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-## Phase 3: L3 External Integration (GREEN → REFACTOR)
-
-- [ ] 5. Implement compression engine with trait-based architecture
-  - Create src/compressor.rs module with Compressor struct
-  - Define Compressor trait with compress() method contract
-  - Write comprehensive failing tests for all compression scenarios
-  - Implement sliding window algorithm with rolling hash integration
-  - Add block matching logic using two-tier hash verification
-  - Handle residual data accumulation with bounded buffer management
-  - Create stress tests for large file processing and memory constraints
-  - Integrate with HashProvider and BlockMatcher traits
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
-
-- [ ] 6. Build serialization layer with format validation
-  - Create src/serializer.rs module with FileSerializer struct
-  - Write failing tests for header validation and corruption detection
-  - Implement bincode serialization with error boundary handling
-  - Add Zstandard compression with configurable levels and error recovery
-  - Create format version compatibility tests and migration strategies
-  - Validate file integrity with checksums and magic number verification
-  - Replace StubInstructionWriter with production FileSerializer implementation
-  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
-
-## Phase 4: Memory Management and Performance (REFACTOR)
-
-- [ ] 7. Implement decompression with memory mapping
-  - Create src/decompressor.rs module with Decompressor struct
-  - Write failing tests for bounds checking and invalid reference handling
-  - Implement memory mapping with RAII cleanup and error boundaries
-  - Add instruction processing with zero-copy optimization where possible
-  - Create comprehensive validation for corpus ID and format compatibility
-  - Add performance tests ensuring <100ms decompression for 10MB files
-  - Replace StubCorpusReader with production MemoryMappedCorpusReader implementation
-  - _Requirements: 4.1, 4.2, 4.3, 4.4, 6.1, 6.2, 6.3, 6.4, 6.5_
-
-- [ ] 8. Add comprehensive property-based testing
-  - Implement compression roundtrip property: compress(data) → decompress → data
-  - Create rolling hash equivalence property across all input patterns
-  - Add corpus manifest consistency properties with collision scenarios
-  - Test instruction stream integrity with malformed input fuzzing
-  - Validate performance properties with generated workloads
-  - Add concurrency safety tests with multiple readers/writers
+- [ ] 6. Build compression engine with CDC integration
+  - Create src/compressor.rs module with CDC-aware Compressor struct
+  - Integrate CDCChunker for variable-size chunk processing
+  - Write comprehensive failing tests for CDC compression scenarios
+  - Implement chunk matching logic using dual-hash verification
+  - Add residual data handling for unmatched chunks
+  - Create stress tests for large file processing with memory constraints
+  - Add performance tests validating enterprise SLA requirements
+  - Test compression effectiveness with real-world datasets (VM images, CI/CD artifacts)
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 3.1, 3.2, 3.3, 3.4, 3.5_
 
-## Phase 5: Integration and Performance Validation
+## Phase 4: Serialization and Security Framework (REFACTOR)
 
-- [ ] 8.5. Create main library API and integration layer
-  - Create src/api.rs module with high-level compress/decompress functions
-  - Implement ReductoCompressor struct that orchestrates all components
-  - Implement ReductoDecompressor struct for file decompression
-  - Add comprehensive integration tests with real file scenarios
-  - Create example usage documentation and code samples
-  - Validate end-to-end compression/decompression roundtrip
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 4.1, 4.2, 4.3, 4.4, 4.5_
+- [ ] 7. Build advanced serialization with secondary compression
+  - Create src/serializer.rs module with enhanced header support
+  - Write failing tests for header validation with CDC parameters and signatures
+  - Implement bincode serialization with version compatibility handling
+  - Add configurable Zstandard compression levels (1-22) with performance profiles
+  - Create format migration tests for backward compatibility
+  - Add integrity hash validation for end-to-end verification
+  - Implement streaming serialization for progressive compression
+  - Test serialization with large instruction streams and memory constraints
+  - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 9. Build performance-validated CLI interface
-  - Create src/bin/reducto.rs CLI application
-  - Create CLI with clap using builder pattern for type safety
-  - Implement command handlers with comprehensive error context using anyhow
-  - Add progress reporting and cancellation support for long operations
-  - Write integration tests with real file scenarios and edge cases
-  - Create performance regression tests with automated benchmarking
-  - Add memory profiling and leak detection in test suite
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 4.1, 4.2, 4.3, 4.4, 4.5_
+- [ ] 8. Implement security and compliance framework
+  - Create src/security_manager.rs module with SecurityManager struct
+  - Implement cryptographic signing using ed25519-dalek for corpus integrity
+  - Write failing tests for signature verification and tamper detection
+  - Add AES-GCM encryption support for sensitive data protection
+  - Implement audit logging with structured events and retention policies
+  - Create secure deletion with configurable retention and compliance support
+  - Add key management with proper key derivation and storage
+  - Test security framework with enterprise compliance requirements
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 10. Implement production-ready error handling
-  - Create context-aware error messages with actionable guidance
-  - Add structured logging with tracing crate for observability
-  - Implement graceful degradation for partial failures
-  - Create error recovery strategies for corrupted files and network issues
-  - Add comprehensive error boundary testing with fault injection
-  - Validate error message clarity with user experience testing
+## Phase 5: Ecosystem-Aware Decompression and Observability
+
+- [ ] 9. Implement ecosystem-aware decompression with cold start resolution
+  - Create src/ecosystem_decompressor.rs module with EcosystemDecompressor struct
+  - Write failing tests for automatic corpus fetching from configured repositories
+  - Implement HTTP client for corpus repository access with authentication
+  - Add graceful degradation to standard compression when corpus unavailable
+  - Create end-to-end integrity verification with cryptographic hashes
+  - Implement local corpus caching with LRU eviction policies
+  - Add timeout handling and retry logic for network operations
+  - Test decompression with various corpus availability scenarios
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 6.1, 6.2, 6.3, 6.4, 6.5_
+
+- [ ] 10. Build comprehensive observability and economic reporting
+  - Create src/metrics_collector.rs module with MetricsCollector struct
+  - Implement dry-run analysis for compression ratio prediction
+  - Write failing tests for metrics collection and export functionality
+  - Add performance monitoring with CPU vs. I/O bound detection
+  - Implement economic metrics calculation (bandwidth/storage savings, ROI)
+  - Create Prometheus and JSON export formats for enterprise monitoring
+  - Add real-time metrics streaming for operational dashboards
+  - Test metrics accuracy with controlled compression scenarios
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-## Phase 6: Final Optimization and Validation
+## Phase 6: Enterprise SDK and API Integration
 
-- [ ] 11. Performance optimization with measurement
+- [ ] 11. Build enterprise SDK with multi-language support
+  - Create src/sdk.rs module with ReductoSDK struct
+  - Implement stream-based compression/decompression for stdin/stdout operations
+  - Write failing tests for SDK integration with various pipeline tools
+  - Add C FFI bindings for multi-language support (Python, Go, etc.)
+  - Create pipeline integration helpers (tar, ssh, cloud CLI plugins)
+  - Implement structured error responses with actionable remediation steps
+  - Add API versioning with backward compatibility guarantees
+  - Test SDK with real enterprise integration scenarios
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+
+- [ ] 12. Implement comprehensive property-based testing and validation
+  - Create CDC roundtrip property: chunk(data) → compress → decompress → data
+  - Add chunk boundary stability tests across data insertion/deletion scenarios
+  - Implement corpus consistency properties with concurrent access patterns
+  - Create security property tests for signature verification and encryption
+  - Add performance property validation with generated workloads
+  - Test enterprise workflow scenarios (VM images, CI/CD artifacts, database backups)
+  - Create stress tests for memory constraints and large dataset handling
+  - Validate all performance contracts with automated measurement
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5_
+
+## Phase 7: Enterprise CLI and Production Readiness
+
+- [ ] 13. Build enterprise CLI with comprehensive command structure
+  - Create src/bin/reducto.rs with full enterprise command set
+  - Implement corpus management commands (build, optimize, fetch, verify, prune)
+  - Write failing tests for CLI argument parsing and validation
+  - Add stream processing commands for pipeline integration
+  - Implement progress reporting and cancellation support for long operations
+  - Create comprehensive error handling with actionable guidance
+  - Add configuration file support for enterprise deployment
+  - Test CLI with real enterprise workflows and edge cases
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [ ] 14. Final performance optimization and production validation
   - Profile critical paths using criterion benchmarks and flamegraphs
-  - Optimize memory layout with #[repr] annotations for cache efficiency
+  - Optimize memory layout and cache efficiency for CDC operations
   - Implement SIMD optimizations for hash calculations where beneficial
-  - Add compile-time optimizations with const generics and const fn
+  - Add compile-time optimizations with const generics for chunk parameters
   - Create performance regression detection in CI pipeline
-  - Validate all performance claims with automated measurement
-  - _Requirements: 1.1, 2.5, 3.1, 3.2, 3.3_
+  - Validate all enterprise performance claims with automated measurement
+  - Test system under enterprise load conditions (concurrent users, large datasets)
+  - Perform security audit and dependency vulnerability scanning
+  - _Requirements: 3.1, 3.2, 3.3, 6.1, 6.2, 6.3, 6.4, 6.5, 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 12. Production readiness and documentation
-  - Add clap dependency for CLI argument parsing
-  - Add comprehensive API documentation with executable examples
-  - Create deployment guides with performance tuning recommendations
-  - Add configuration validation and environment-specific settings
-  - Create troubleshooting guides with common error scenarios
-  - Perform final security audit and dependency vulnerability scanning
-  - Create README.md with usage examples and performance benchmarks
-  - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.2, 7.3, 7.4, 7.5_
+- [ ] 15. Enterprise documentation and deployment readiness
+  - Create comprehensive API documentation with executable examples
+  - Write deployment guides with performance tuning recommendations
+  - Add troubleshooting guides for common enterprise scenarios
+  - Create security configuration guides for compliance requirements
+  - Write integration guides for common enterprise tools and workflows
+  - Add monitoring and alerting setup documentation
+  - Create README.md with enterprise use cases and ROI examples
+  - Validate documentation accuracy with real deployment scenarios
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 8.1, 8.2, 8.3, 8.4, 8.5, 9.1, 9.2, 9.3, 9.4, 9.5_

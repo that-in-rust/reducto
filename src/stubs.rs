@@ -12,8 +12,8 @@
 
 use crate::{
     error::Result,
-    traits::{BlockMatcher, CorpusReader, HashProvider, InstructionWriter},
-    types::{BlockOffset, CorpusBlock, CorpusId, ReductoHeader, ReductoInstruction, WeakHash},
+    traits::{BlockMatcher, CorpusReader, HashProvider, InstructionWriter, CDCChunker, CorpusManager, SecurityManager, MetricsCollector},
+    types::{BlockOffset, CorpusChunk, CorpusId, ReductoHeader, ReductoInstruction, WeakHash},
 };
 use std::path::Path;
 
@@ -80,11 +80,11 @@ impl StubBlockMatcher {
 }
 
 impl BlockMatcher for StubBlockMatcher {
-    fn find_candidates(&self, _weak_hash: WeakHash) -> Result<Vec<CorpusBlock>> {
+    fn find_candidates(&self, _weak_hash: WeakHash) -> Result<Vec<CorpusChunk>> {
         unimplemented!("BlockMatcher::find_candidates - implement manifest lookup")
     }
 
-    fn verify_match(&self, _data: &[u8], _candidate: &CorpusBlock) -> Result<bool> {
+    fn verify_match(&self, _data: &[u8], _candidate: &CorpusChunk) -> Result<bool> {
         unimplemented!("BlockMatcher::verify_match - implement strong hash verification")
     }
 
@@ -209,6 +209,209 @@ impl InstructionWriter for StubInstructionWriter {
     }
 }
 
+// === Enterprise Trait Stubs ===
+
+/// STUB implementation of CDCChunker trait
+///
+/// All methods return `unimplemented!()` and should be replaced with
+/// actual Content-Defined Chunking implementation using FastCDC/Gear hashing.
+#[derive(Debug)]
+pub struct StubCDCChunker {
+    _config: crate::types::ChunkConfig,
+}
+
+impl StubCDCChunker {
+    /// Create a new stub CDC chunker
+    pub fn new(config: crate::types::ChunkConfig) -> Result<Self> {
+        Ok(Self { _config: config })
+    }
+}
+
+impl CDCChunker for StubCDCChunker {
+    fn new(config: crate::types::ChunkConfig) -> Result<Self> {
+        unimplemented!("CDCChunker::new - implement CDC chunker with FastCDC/Gear hashing")
+    }
+
+    fn chunk_data(&mut self, _data: &[u8]) -> Result<Vec<crate::types::DataChunk>> {
+        unimplemented!("CDCChunker::chunk_data - implement variable-size chunking with content-defined boundaries")
+    }
+
+    fn finalize(&mut self) -> Result<Option<crate::types::DataChunk>> {
+        unimplemented!("CDCChunker::finalize - return final chunk if data remains")
+    }
+
+    fn get_statistics(&self) -> Result<(usize, f64, usize)> {
+        unimplemented!("CDCChunker::get_statistics - return chunking statistics")
+    }
+
+    fn reset(&mut self) {
+        unimplemented!("CDCChunker::reset - reset chunker state for new input")
+    }
+
+    fn is_boundary(&self, _hash: u64) -> bool {
+        unimplemented!("CDCChunker::is_boundary - check if position is chunk boundary")
+    }
+}
+
+/// STUB implementation of CorpusManager trait
+///
+/// All methods return `unimplemented!()` and should be replaced with
+/// actual corpus lifecycle management with persistent storage.
+#[derive(Debug, Default)]
+pub struct StubCorpusManager {
+    _storage_initialized: bool,
+}
+
+impl StubCorpusManager {
+    /// Create a new stub corpus manager
+    pub fn new() -> Self {
+        Self {
+            _storage_initialized: false,
+        }
+    }
+}
+
+impl CorpusManager for StubCorpusManager {
+    async fn build_corpus(
+        &mut self,
+        _input_paths: &[std::path::PathBuf],
+        _config: crate::types::ChunkConfig,
+    ) -> Result<crate::types::CorpusMetadata> {
+        unimplemented!("CorpusManager::build_corpus - implement corpus construction with CDC chunking")
+    }
+
+    async fn optimize_corpus(
+        &mut self,
+        _analysis_data: &[std::path::PathBuf],
+    ) -> Result<crate::types::OptimizationRecommendations> {
+        unimplemented!("CorpusManager::optimize_corpus - implement Golden Corpus optimization")
+    }
+
+    async fn build_persistent_index(&mut self, _corpus_path: &std::path::Path) -> Result<()> {
+        unimplemented!("CorpusManager::build_persistent_index - implement LSM tree/RocksDB indexing")
+    }
+
+    fn get_candidates(&self, _weak_hash: WeakHash) -> Result<Option<Vec<CorpusChunk>>> {
+        unimplemented!("CorpusManager::get_candidates - implement chunk lookup with collision handling")
+    }
+
+    fn verify_match(&self, _chunk: &[u8], _candidate: &CorpusChunk) -> Result<bool> {
+        unimplemented!("CorpusManager::verify_match - implement constant-time chunk verification")
+    }
+
+    fn validate_corpus_integrity(&self) -> Result<()> {
+        unimplemented!("CorpusManager::validate_corpus_integrity - implement cryptographic integrity verification")
+    }
+
+    async fn prune_corpus(
+        &mut self,
+        _retention_policy: crate::types::RetentionPolicy,
+    ) -> Result<crate::types::PruneStats> {
+        unimplemented!("CorpusManager::prune_corpus - implement usage-based corpus pruning")
+    }
+}
+
+/// STUB implementation of SecurityManager trait
+///
+/// All methods return `unimplemented!()` and should be replaced with
+/// actual cryptographic operations and compliance features.
+#[derive(Debug, Default)]
+pub struct StubSecurityManager {
+    _keys_loaded: bool,
+}
+
+impl StubSecurityManager {
+    /// Create a new stub security manager
+    pub fn new() -> Self {
+        Self {
+            _keys_loaded: false,
+        }
+    }
+}
+
+impl SecurityManager for StubSecurityManager {
+    fn sign_corpus(&self, _corpus_data: &[u8]) -> Result<crate::types::Signature> {
+        unimplemented!("SecurityManager::sign_corpus - implement ed25519 cryptographic signing")
+    }
+
+    fn verify_corpus_signature(
+        &self,
+        _corpus_data: &[u8],
+        _signature: &crate::types::Signature,
+    ) -> Result<bool> {
+        unimplemented!("SecurityManager::verify_corpus_signature - implement signature verification")
+    }
+
+    fn encrypt_output(&self, _data: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("SecurityManager::encrypt_output - implement AES-GCM encryption")
+    }
+
+    fn decrypt_input(&self, _encrypted_data: &[u8]) -> Result<Vec<u8>> {
+        unimplemented!("SecurityManager::decrypt_input - implement AES-GCM decryption")
+    }
+
+    fn log_corpus_access(
+        &self,
+        _corpus_id: &str,
+        _operation: crate::types::AccessOperation,
+        _user: &str,
+    ) -> Result<()> {
+        unimplemented!("SecurityManager::log_corpus_access - implement audit logging")
+    }
+
+    async fn secure_delete(&self, _file_path: &std::path::Path) -> Result<()> {
+        unimplemented!("SecurityManager::secure_delete - implement secure file deletion")
+    }
+}
+
+/// STUB implementation of MetricsCollector trait
+///
+/// All methods return `unimplemented!()` and should be replaced with
+/// actual metrics collection and economic reporting.
+#[derive(Debug, Default)]
+pub struct StubMetricsCollector {
+    _metrics_enabled: bool,
+}
+
+impl StubMetricsCollector {
+    /// Create a new stub metrics collector
+    pub fn new() -> Self {
+        Self {
+            _metrics_enabled: false,
+        }
+    }
+}
+
+impl MetricsCollector for StubMetricsCollector {
+    async fn analyze_compression_potential(
+        &self,
+        _input_path: &std::path::Path,
+        _corpus_path: &std::path::Path,
+    ) -> Result<crate::types::CompressionAnalysis> {
+        unimplemented!("MetricsCollector::analyze_compression_potential - implement dry-run compression analysis")
+    }
+
+    async fn export_metrics(&self, _format: crate::types::MetricsFormat) -> Result<String> {
+        unimplemented!("MetricsCollector::export_metrics - implement Prometheus/JSON metrics export")
+    }
+
+    fn calculate_roi(&self, _usage_stats: &crate::types::UsageStats) -> Result<crate::types::EconomicReport> {
+        unimplemented!("MetricsCollector::calculate_roi - implement ROI calculation")
+    }
+
+    fn record_compression_metrics(&mut self, _metrics: &crate::types::CompressionMetrics) -> Result<()> {
+        unimplemented!("MetricsCollector::record_compression_metrics - implement metrics recording")
+    }
+
+    fn record_decompression_metrics(&mut self, _metrics: &crate::types::DecompressionMetrics) -> Result<()> {
+        unimplemented!("MetricsCollector::record_decompression_metrics - implement metrics recording")
+    }
+
+    fn get_performance_metrics(&self) -> Result<crate::types::PerformanceMetrics> {
+        unimplemented!("MetricsCollector::get_performance_metrics - implement real-time performance monitoring")
+    }
+}
+
 /// Factory functions for creating stub implementations
 ///
 /// These functions provide a convenient way to create stub instances
@@ -236,6 +439,26 @@ pub mod factory {
         Box::new(StubInstructionWriter::new())
     }
 
+    /// Create a new stub CDC chunker
+    pub fn create_cdc_chunker(config: crate::types::ChunkConfig) -> Result<Box<dyn CDCChunker>> {
+        Ok(Box::new(StubCDCChunker::new(config)?))
+    }
+
+    /// Create a new stub corpus manager
+    pub fn create_corpus_manager() -> StubCorpusManager {
+        StubCorpusManager::new()
+    }
+
+    /// Create a new stub security manager
+    pub fn create_security_manager() -> StubSecurityManager {
+        StubSecurityManager::new()
+    }
+
+    /// Create a new stub metrics collector
+    pub fn create_metrics_collector() -> StubMetricsCollector {
+        StubMetricsCollector::new()
+    }
+
     /// Create a complete set of stub components for testing
     #[allow(clippy::type_complexity)]
     pub fn create_stub_system() -> (
@@ -250,6 +473,22 @@ pub mod factory {
             create_corpus_reader(),
             create_instruction_writer(),
         )
+    }
+
+    /// Create a complete set of enterprise stub components for testing
+    #[allow(clippy::type_complexity)]
+    pub fn create_enterprise_stub_system() -> Result<(
+        Box<dyn CDCChunker>,
+        StubCorpusManager,
+        StubSecurityManager,
+        StubMetricsCollector,
+    )> {
+        Ok((
+            create_cdc_chunker(crate::types::ChunkConfig::default())?,
+            create_corpus_manager(),
+            create_security_manager(),
+            create_metrics_collector(),
+        ))
     }
 }
 
@@ -278,8 +517,8 @@ mod tests {
 
         assert!(panic::catch_unwind(|| matcher.find_candidates(WeakHash::new(0))).is_err());
         assert!(panic::catch_unwind(|| {
-            let block = CorpusBlock::new(BlockOffset::new(0), blake3::hash(&[0u8; 4096]));
-            matcher.verify_match(&[0u8; 4096], &block)
+            let chunk = CorpusChunk::new(0, 4096, blake3::hash(&[0u8; 4096]));
+            matcher.verify_match(&[0u8; 4096], &chunk)
         })
         .is_err());
         assert!(panic::catch_unwind(|| matcher.block_count()).is_err());
@@ -332,6 +571,47 @@ mod tests {
         let _corpus_reader = StubCorpusReader::new();
         let _instruction_writer = StubInstructionWriter::new();
 
+        // Test enterprise stub creation
+        let config = crate::types::ChunkConfig::default();
+        let _cdc_chunker = StubCDCChunker::new(config).unwrap();
+        let _corpus_manager = StubCorpusManager::new();
+        let _security_manager = StubSecurityManager::new();
+        let _metrics_collector = StubMetricsCollector::new();
+
         // Stub creation works correctly - verified by compilation
+    }
+
+    #[test]
+    fn test_enterprise_stubs_panic() {
+        // Test that enterprise stub methods properly panic
+        let config = crate::types::ChunkConfig::default();
+        let chunker = StubCDCChunker::new(config).unwrap();
+        
+        assert!(panic::catch_unwind(|| chunker.get_statistics()).is_err());
+        assert!(panic::catch_unwind(|| chunker.is_boundary(0)).is_err());
+
+        let manager = StubCorpusManager::new();
+        assert!(panic::catch_unwind(|| manager.get_candidates(WeakHash::new(0))).is_err());
+        assert!(panic::catch_unwind(|| manager.validate_corpus_integrity()).is_err());
+
+        let security = StubSecurityManager::new();
+        assert!(panic::catch_unwind(|| security.sign_corpus(&[])).is_err());
+
+        let metrics = StubMetricsCollector::new();
+        assert!(panic::catch_unwind(|| metrics.get_performance_metrics()).is_err());
+    }
+
+    #[test]
+    fn test_enterprise_factory_functions() {
+        // Test that enterprise factory functions work
+        let config = crate::types::ChunkConfig::default();
+        let _cdc_chunker = factory::create_cdc_chunker(config).unwrap();
+        let _corpus_manager = factory::create_corpus_manager();
+        let _security_manager = factory::create_security_manager();
+        let _metrics_collector = factory::create_metrics_collector();
+
+        let (_chunker, _manager, _security, _metrics) = factory::create_enterprise_stub_system().unwrap();
+
+        // Enterprise factory functions work correctly - verified by compilation
     }
 }

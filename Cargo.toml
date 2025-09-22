@@ -6,6 +6,14 @@ authors = ["Reducto Team"]
 description = "High-performance differential synchronization compression system"
 license = "MIT"
 
+# Feature flags for enterprise modules
+[features]
+default = []
+enterprise = ["rocksdb"]
+security = ["ed25519-dalek", "aes-gcm"]
+metrics = ["prometheus", "sysinfo"]
+sdk = ["tokio"]
+
 [dependencies]
 # L1 Core: Fundamental Rust features (no external dependencies)
 # - Ownership, lifetimes, traits, Result/Option, RAII, newtype pattern
@@ -23,6 +31,24 @@ hashbrown = "0.14"    # High-performance HashMap
 anyhow = "1.0"        # Application error handling
 thiserror = "1.0"     # Library error definitions
 uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }       # Date/time handling
+
+# Enterprise dependencies (feature-gated)
+rocksdb = { version = "0.20", optional = true }          # Persistent storage for large corpora
+
+# Security dependencies (feature-gated)
+ed25519-dalek = { version = "1.0", optional = true, features = ["serde"] }  # Digital signatures
+aes-gcm = { version = "0.9", optional = true }          # Encryption support
+
+# Metrics dependencies (feature-gated)
+prometheus = { version = "0.13", optional = true }       # Metrics collection and export
+sysinfo = { version = "0.28", optional = true }          # System performance monitoring
+
+# SDK dependencies (feature-gated)
+tokio = { version = "1.0", features = ["full"], optional = true }  # Async runtime for SDK
+
+# Cryptographic utilities
+subtle = "2.4"        # Constant-time comparison for security
 
 [dev-dependencies]
 proptest = "1.0"      # Property-based testing
