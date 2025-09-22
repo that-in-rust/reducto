@@ -344,7 +344,7 @@ impl ReductoSDK {
             {
                 let metrics_config = crate::metrics_collector::MetricsConfig::default();
                 Some(Arc::new(Mutex::new(
-                    EnterpriseMetricsCollector::new(metrics_config).await?
+                    EnterpriseMetricsCollector::new(metrics_config)?
                 )))
             }
             #[cfg(not(feature = "metrics"))]

@@ -130,7 +130,7 @@
   - Test SDK with real enterprise integration scenarios
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [-] 12. Implement comprehensive property-based testing and validation
+- [x] 12. Implement comprehensive property-based testing and validation
   - Create CDC roundtrip property: chunk(data) → compress → decompress → data
   - Add chunk boundary stability tests across data insertion/deletion scenarios
   - Implement corpus consistency properties with concurrent access patterns
@@ -143,7 +143,7 @@
 
 ## Phase 7: Enterprise CLI and Production Readiness
 
-- [ ] 13. Build enterprise CLI with comprehensive command structure
+- [-] 13. Build enterprise CLI with comprehensive command structure
   - Create src/bin/reducto.rs with full enterprise command set
   - Implement corpus management commands (build, optimize, fetch, verify, prune)
   - Write failing tests for CLI argument parsing and validation
