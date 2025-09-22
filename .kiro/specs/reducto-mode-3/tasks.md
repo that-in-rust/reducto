@@ -183,4 +183,4 @@
 - [x] Update All README and docs with Mermaid diagrams referencing the steering docs  
 
 
-- [ ] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github, if in down move it to zzzzArchive folder
+- [x] Run .kiro/tree-with-wc.sh - and use mv commands to clean up the repo, it should look elegant for someone reading it on github, if in dout move it to zzzzArchive folder instead of deleting it
