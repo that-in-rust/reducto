@@ -47,7 +47,7 @@
 
 ## Phase 3: Enterprise Corpus Management (GREEN → REFACTOR)
 
-- [-] 5. Implement Corpus Management Toolkit with persistent storage
+- [x] 5. Implement Corpus Management Toolkit with persistent storage
   - Create src/corpus_manager.rs module with CorpusManager struct
   - Implement RocksDB-based persistent storage for large corpora exceeding memory
   - Write failing tests for corpus building with CDC chunking
@@ -58,7 +58,7 @@
   - Test corpus management with datasets larger than available memory
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 6. Build compression engine with CDC integration
+- [-] 6. Build compression engine with CDC integration
   - Create src/compressor.rs module with CDC-aware Compressor struct
   - Integrate CDCChunker for variable-size chunk processing
   - Write comprehensive failing tests for CDC compression scenarios

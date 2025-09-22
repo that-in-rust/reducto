@@ -32,7 +32,7 @@ pub use types::{
 };
 pub use cdc_chunker::{FastCDCChunker, GearHasher};
 pub use rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics};
-pub use corpus_manager::{EnterpriseCorpusManager, PersistentStorage, InMemoryStorage, StorageStats};
+pub use corpus_manager::{EnterpriseCorpusManager, InMemoryStorage, StorageStats, StorageBackend};
 
 /// Prelude module for convenient imports
 pub mod prelude {
@@ -46,6 +46,6 @@ pub mod prelude {
         },
         cdc_chunker::{FastCDCChunker, GearHasher},
         rolling_hash::{RollingHasher, StrongHasher, DualHasher, DualHashStatistics},
-        corpus_manager::{EnterpriseCorpusManager, PersistentStorage, InMemoryStorage, StorageStats},
+        corpus_manager::{EnterpriseCorpusManager, InMemoryStorage, StorageStats, StorageBackend},
     };
 }

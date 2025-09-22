@@ -55,6 +55,7 @@ proptest = "1.0"      # Property-based testing
 criterion = "0.5"     # Benchmarking framework
 tempfile = "3.0"      # Temporary files for testing
 tokio-test = "0.4"    # Async testing utilities
+tokio = { version = "1.0", features = ["full"] }  # Async runtime for tests
 
 # Benchmarks will be added in later tasks
 # [[bench]]

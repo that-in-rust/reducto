@@ -485,6 +485,24 @@ pub enum SDKError {
 }
 
 // Implement From conversions for the main ReductoError
+impl From<io::Error> for ReductoError {
+    fn from(err: io::Error) -> Self {
+        Self::Io {
+            operation: "unknown operation".to_string(),
+            source: err,
+        }
+    }
+}
+
+impl From<bincode::Error> for ReductoError {
+    fn from(err: bincode::Error) -> Self {
+        Self::Serialization {
+            context: "unknown context".to_string(),
+            source: err,
+        }
+    }
+}
+
 impl From<CorpusError> for ReductoError {
     fn from(err: CorpusError) -> Self {
         match err {
