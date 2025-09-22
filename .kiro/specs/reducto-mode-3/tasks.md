@@ -20,7 +20,7 @@
 
 ## Phase 2: L2 Standard Library Implementation (RED → GREEN)
 
-- [x] 3. Build rolling hash engine with performance contracts
+- [ ] 3. Build rolling hash engine with performance contracts
   - Create src/rolling_hash.rs module with RollingHasher struct
   - Implement RollingHasher with explicit performance contracts in documentation
   - Write failing tests for O(K) init() and O(1) roll() performance requirements
