@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create basic CLI structure
+- [-] 1. Create basic CLI structure
   - Set up `src/bin/benchmark.rs` with clap for argument parsing
   - Add `src/lib.rs` with main benchmark function
   - Update `Cargo.toml` with dependencies: clap, flate2, anyhow
