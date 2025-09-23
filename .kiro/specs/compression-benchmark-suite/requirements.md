@@ -2,47 +2,45 @@
 
 ## Introduction
 
-This feature creates a definitive performance benchmark that answers the critical question: "When should I choose Reducto Mode 3 over existing compression formats?" The system generates realistic datasets, measures end-to-end performance across multiple dimensions, and produces actionable insights for compression format selection in production environments.
+This feature creates a **dead-simple benchmark** that answers ONE critical question: **"Will Reducto Mode 3 save me storage/bandwidth costs on MY data?"**
 
-**Success Metric**: Enable users to make data-driven compression format decisions within 5 minutes of running the benchmark.
+The system tests the user's actual data (or generates realistic samples), compares Reducto Mode 3 against gzip (the universal baseline), and gives a clear YES/NO recommendation with quantified savings.
+
+**Success Metric**: User runs `cargo run --bin benchmark [my-data-directory]` and gets a definitive answer in under 60 seconds.
+
+**Anti-Goals**: 
+- Complex multi-format comparisons (gzip is the only baseline that matters)
+- Elaborate visualizations (simple text output is sufficient)
+- Organizational deployment simulation (premature - prove value first)
 
 ## Requirements
 
-### Requirement 1: Real-World Dataset Collection
+### Requirement 1: User Data Analysis
 
-**User Story:** As a developer evaluating compression for production workloads, I need test data from actual real-world sources that naturally exhibit the redundancy patterns where differential compression excels, so that benchmark results accurately predict performance on my data.
-
-#### Acceptance Criteria
-
-1. WHEN I run the data collector THEN the system SHALL fetch 100MB of real-world data from public APIs and repositories, split into 5 files of exactly 20MB each
-2. WHEN collecting high-redundancy data THEN the system SHALL download GitHub repository contents (multiple versions of similar projects), Stack Overflow question dumps, and Wikipedia article collections where content naturally repeats across files
-3. WHEN gathering medium-redundancy data THEN the system SHALL collect open-source codebases from GitHub API (Rust, JavaScript, Python projects) that share common patterns, imports, and boilerplate code
-4. WHEN obtaining structured data THEN the system SHALL fetch JSON datasets from public APIs (OpenWeather, JSONPlaceholder, GitHub API responses) that contain repeated field names and similar value patterns
-5. WHEN collecting log-like data THEN the system SHALL download real server logs, CSV datasets from data.gov, or similar structured data with natural repetition patterns
-6. WHEN APIs are unavailable THEN the system SHALL fall back to cached sample datasets that represent the same real-world patterns
-7. WHEN data collection completes THEN the system SHALL analyze and report the redundancy characteristics of collected data, showing why this data would benefit from differential compression
-
-**Real-World Data Sources:**
-- GitHub API: Repository contents, commit diffs, issue discussions
-- Stack Overflow Data Dump: Questions, answers, comments (XML format)
-- Wikipedia Dumps: Article content with natural cross-references
-- Public JSON APIs: Weather data, geographic data, social media APIs
-- Open Government Data: CSV files with repeated structures
-- Docker Hub: Dockerfile collections with common base patterns
-
-### Requirement 2: Production-Focused Performance Measurement
-
-**User Story:** As a system architect choosing compression for production deployment, I need to understand the real-world trade-offs between compression ratio, speed, and resource usage, so that I can optimize for my specific constraints (storage cost vs CPU cost vs latency requirements).
+**User Story:** As a developer with actual data files, I want to test Reducto Mode 3 on MY data, so that I know if it will save me money in my specific use case.
 
 #### Acceptance Criteria
 
-1. WHEN I run compression benchmarks THEN the system SHALL test the 4 most relevant formats: Reducto Mode 3, gzip (ubiquitous), zstd (modern standard), and 7z (maximum compression) 
-2. WHEN measuring compression effectiveness THEN the system SHALL calculate space savings percentage and bytes saved per second to show real economic impact
-3. WHEN recording performance THEN the system SHALL measure wall-clock time (user experience), CPU time (cost), and peak memory (resource planning)
-4. WHEN testing Reducto Mode 3 THEN the system SHALL build reference corpus from 30% of test data and include corpus build time in total cost analysis
-5. WHEN comparing formats THEN the system SHALL use production-realistic settings: gzip level 6, zstd level 3, 7z default, Reducto optimized for 4KB blocks
-6. WHEN measuring reliability THEN the system SHALL run each test 3 times and fail if results vary by more than 5% (ensuring consistent, trustworthy results)
-7. WHEN benchmarks complete THEN the system SHALL identify the optimal format for 3 key scenarios: minimize storage cost, minimize latency, minimize CPU usage
+1. WHEN I run `cargo run --bin benchmark /path/to/my/data` THEN the system SHALL analyze all files in that directory up to 100MB total
+2. WHEN I don't provide a data path THEN the system SHALL generate 20MB of realistic test data representing common scenarios: source code, JSON logs, and documentation
+3. WHEN analyzing my data THEN the system SHALL identify redundancy patterns and predict if differential compression will be effective
+4. WHEN my data has low redundancy THEN the system SHALL immediately report "Reducto Mode 3 not recommended for this data type" and exit
+5. WHEN my data shows promise THEN the system SHALL proceed with compression testing
+6. WHEN data analysis completes THEN the system SHALL output: "Data analysis: X% redundancy detected, proceeding with compression test"
+
+### Requirement 2: Head-to-Head Compression Test
+
+**User Story:** As a developer evaluating compression options, I need to see if Reducto Mode 3 beats gzip on my data, so that I can make a simple go/no-go decision.
+
+#### Acceptance Criteria
+
+1. WHEN running compression tests THEN the system SHALL test only 2 formats: Reducto Mode 3 vs gzip (the universal baseline)
+2. WHEN measuring effectiveness THEN the system SHALL calculate compression ratio and compression speed for both formats
+3. WHEN testing Reducto Mode 3 THEN the system SHALL build a reference corpus from 30% of the data and include corpus build time in total time
+4. WHEN testing gzip THEN the system SHALL use level 6 (production default)
+5. WHEN tests complete THEN the system SHALL determine the winner based on: better compression ratio AND reasonable speed (not >10x slower)
+6. WHEN Reducto wins THEN the system SHALL report: "Reducto Mode 3: X% better compression, Y% speed difference"
+7. WHEN gzip wins THEN the system SHALL report: "Stick with gzip: Reducto provides insufficient benefit"
 
 ### Requirement 3: End-to-End Cycle Validation
 
