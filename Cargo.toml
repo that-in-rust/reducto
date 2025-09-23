@@ -1,110 +1,73 @@
 [package]
-name = "reducto-mode-3"
+name = "compression-benchmark-suite"
 version = "0.1.0"
 edition = "2021"
-authors = ["Reducto Team"]
-description = "High-performance differential synchronization compression system"
-license = "MIT"
 
-# Feature flags for enterprise modules
-[features]
-default = []
-enterprise = ["rocksdb"]
-security = ["ed25519-dalek", "aes-gcm"]
-metrics = ["prometheus", "sysinfo", "tokio-stream"]
-sdk = ["reqwest", "lru"]
+[[bin]]
+name = "benchmark"
+path = "src/bin/benchmark.rs"
 
 [dependencies]
-# L1 Core: Fundamental Rust features (no external dependencies)
-# - Ownership, lifetimes, traits, Result/Option, RAII, newtype pattern
+# Async runtime and HTTP client
+tokio = { version = "1.0", features = ["full"] }
+reqwest = { version = "0.11", features = ["json"] }
 
-# L2 Standard Library: Collections, iterators, smart pointers, thread safety
-# - HashMap, Vec, Arc, Mutex, Send/Sync
-
-# L3 External Dependencies: Ecosystem crates
-blake3 = { version = "1.5", features = ["serde"] }        # Strong cryptographic hashing
-bincode = "1.3"       # Efficient binary serialization
+# Serialization and data handling
 serde = { version = "1.0", features = ["derive"] }
-zstd = "0.13"         # High-performance compression
-memmap2 = "0.9"       # Memory-mapped file access
-hashbrown = "0.14"    # High-performance HashMap
-anyhow = "1.0"        # Application error handling
-thiserror = "1.0"     # Library error definitions
+serde_json = "1.0"
 uuid = { version = "1.0", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }       # Date/time handling
 
-# Enterprise dependencies (feature-gated)
-rocksdb = { version = "0.20", optional = true }          # Persistent storage for large corpora
+# Compression formats
+flate2 = "1.0"  # gzip
+zstd = "0.13"
+sevenz-rust = "0.5"
 
-# Security dependencies (feature-gated)
-ed25519-dalek = { version = "1.0", optional = true, features = ["serde"] }  # Digital signatures
-aes-gcm = { version = "0.9", optional = true }          # Encryption support
+# Hashing and crypto
+blake3 = "1.5"
+sha2 = "0.10"
 
-# Metrics dependencies (feature-gated)
-prometheus = { version = "0.13", optional = true }       # Metrics collection and export
-sysinfo = { version = "0.28", optional = true }          # System performance monitoring
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
 
-# SDK dependencies (feature-gated)
-tokio = { version = "1.0", features = ["full"] }  # Async runtime for SDK and CLI
-reqwest = { version = "0.11", features = ["json", "stream"], optional = true }  # HTTP client
-lru = { version = "0.12", optional = true }  # LRU cache for corpus caching
+# Time and date
+chrono = { version = "0.4", features = ["serde"] }
 
-# Additional async dependencies for metrics
-tokio-stream = { version = "0.1", optional = true }  # Async streaming utilities
-hex = "0.4"  # Hex encoding for hash display
+# File system and I/O
+memmap2 = "0.9"
+tempfile = "3.0"
 
-# Additional dependencies for security module
-serde_json = "1.0"    # JSON serialization for audit logs
-rand = "0.7"          # Random number generation (compatible with ed25519-dalek)
-rand_core = "0.5"     # Core random traits
+# Collections and utilities
+hashbrown = "0.14"
+indexmap = "2.0"
 
-# Cryptographic utilities
-subtle = "2.4"        # Constant-time comparison for security
-num_cpus = "1.0"      # CPU count for parallel compression
+# CLI and progress
+clap = { version = "4.0", features = ["derive"] }
+indicatif = "0.17"
 
-# CLI dependencies
-clap = { version = "4.0", features = ["derive", "env", "color"] }  # Command-line argument parsing
-indicatif = "0.17"    # Progress bars and spinners
-console = "0.15"      # Terminal utilities and colors
-dialoguer = "0.10"    # Interactive prompts
-dirs = "5.0"          # Standard directories
-toml = "0.8"          # Configuration file parsing
-env_logger = "0.10"   # Logging implementation
-log = "0.4"           # Logging facade
-tempfile = "3.0"      # Temporary files for validation
-regex = "1.0"         # Regular expressions for security scanning
+# Statistics and analysis
+statrs = "0.16"
 
+# Memory mapping and system info
+sysinfo = "0.30"
+
+# Async traits
+async-trait = "0.1"
 
 [dev-dependencies]
-proptest = "1.0"      # Property-based testing
-criterion = "0.5"     # Benchmarking framework
-tempfile = "3.0"      # Temporary files for testing
-tokio-test = "0.4"    # Async testing utilities
-tokio = { version = "1.0", features = ["full"] }  # Async runtime for tests
-fastrand = "2.0"      # Fast random number generation for tests
-assert_cmd = "2.0"    # CLI testing utilities
-predicates = "3.0"    # Assertion predicates for testing
+tokio-test = "0.4"
+mockito = "1.0"
+proptest = "1.0"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [[bench]]
-name = "criterion_benchmarks"
+name = "compression_benchmarks"
 harness = false
 
-[profile.release]
-lto = true
-codegen-units = 1
-panic = "abort"
-
-[profile.bench]
-debug = true
-
-[[bin]]
-name = "reducto"
-path = "src/bin/reducto.rs"
-
-[[bin]]
-name = "performance_regression_detection"
-path = "src/bin/performance_regression_detection.rs"
-
-[[bin]]
-name = "security_audit"
-path = "src/bin/security_audit.rs"
+[features]
+default = ["all-formats"]
+all-formats = ["gzip", "zstd", "sevenz"]
+gzip = []
+zstd = []
+sevenz = []
+quick-mode = []
