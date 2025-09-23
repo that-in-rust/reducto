@@ -1,16 +1,10 @@
-pub mod data;
-pub mod compression;
-pub mod corpus;
-pub mod analysis;
-pub mod reporting;
+// Basic modules - will be implemented in subsequent tasks
 pub mod errors;
+pub mod data_loader;
 
-// Re-export commonly used types
-pub use data::{DataFile, DataType, RedundancyLevel};
-pub use compression::{CompressionFormat, CompressionResult, BenchmarkResults};
-pub use corpus::{ReferenceCorpus, CorpusBuilder, CorpusMetadata};
-pub use analysis::{PerformanceAnalyzer, AnalysisResults, Recommendation};
-pub use errors::{BenchmarkError, BenchmarkResult};
+// Re-export error types and data loading functionality
+pub use errors::BenchmarkError;
+pub use data_loader::{LoadedData, DataSource, load_data};
 
 use std::path::PathBuf;
 use std::time::Duration;
@@ -36,7 +30,7 @@ pub struct BenchmarkResult {
 pub async fn run_benchmark(
     data_path: Option<PathBuf>,
     timeout_seconds: u64,
-    output_path: PathBuf,
+    _output_path: PathBuf,
     verbose: bool,
 ) -> Result<BenchmarkResult, BenchmarkError> {
     let timeout = Duration::from_secs(timeout_seconds);
@@ -46,41 +40,58 @@ pub async fn run_benchmark(
         println!("Timeout: {:?}", timeout);
     }
     
-    // TODO: Implement the actual benchmark logic in subsequent tasks
-    // For now, return a placeholder result
+    // Step 1: Load data (Task 2 implementation)
+    if verbose {
+        println!("Loading data...");
+    }
     
-    let recommendation = if data_path.is_some() {
-        "PLACEHOLDER: Benchmark not yet implemented - will analyze your data"
-    } else {
-        "PLACEHOLDER: Benchmark not yet implemented - will generate test data"
+    let loaded_data = load_data(data_path.as_deref())?;
+    
+    if verbose {
+        match &loaded_data.source {
+            DataSource::Directory(path) => {
+                println!("Loaded {} files from directory: {}", 
+                         loaded_data.file_count, path.display());
+            }
+            DataSource::Generated => {
+                println!("Generated test data with {} simulated files", 
+                         loaded_data.file_count);
+            }
+        }
+        println!("Total data size: {} bytes ({:.1}MB)", 
+                 loaded_data.total_size, 
+                 loaded_data.total_size as f64 / (1024.0 * 1024.0));
+    }
+    
+    // TODO: Implement the remaining benchmark logic in subsequent tasks
+    // - Data analysis and redundancy detection
+    // - Compression testing (gzip vs Reducto Mode 3)
+    // - Performance comparison and recommendation
+    
+    let recommendation = match &loaded_data.source {
+        DataSource::Directory(path) => {
+            format!("Data loaded from {}: {} files, {:.1}MB total. Compression testing not yet implemented.", 
+                    path.display(), loaded_data.file_count, 
+                    loaded_data.total_size as f64 / (1024.0 * 1024.0))
+        }
+        DataSource::Generated => {
+            format!("Generated {:.1}MB of test data. Compression testing not yet implemented.", 
+                    loaded_data.total_size as f64 / (1024.0 * 1024.0))
+        }
     };
     
     let result = BenchmarkResult {
-        recommendation: recommendation.to_string(),
+        recommendation,
         is_recommended: false,
-        details: "Benchmark implementation in progress".to_string(),
+        details: format!("Data loading complete. {} bytes loaded from {} files.", 
+                        loaded_data.total_size, loaded_data.file_count),
     };
     
     if verbose {
-        println!("=== Benchmark Complete ===");
+        println!("=== Data Loading Complete ===");
     }
     
     Ok(result)
 }
 
-/// Prelude module for common imports
-pub mod prelude {
-    pub use crate::{
-        data::{DataFile, DataType, RedundancyLevel, DataSource},
-        compression::{CompressionFormat, CompressionResult, BenchmarkResults},
-        corpus::{ReferenceCorpus, CorpusBuilder, CorpusMetadata},
-        analysis::{PerformanceAnalyzer, AnalysisResults, Recommendation, OptimizationScenario},
-        errors::{BenchmarkError, BenchmarkResult},
-    };
-    
-    pub use async_trait::async_trait;
-    pub use serde::{Serialize, Deserialize};
-    pub use std::collections::HashMap;
-    pub use std::time::{Duration, Instant};
-    pub use tokio;
-}
+// Prelude module will be added in subsequent tasks when other modules are implemented

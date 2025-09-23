@@ -1,10 +1,14 @@
 use thiserror::Error;
+use std::time::Duration;
 
 /// Comprehensive error hierarchy for the benchmark system
 #[derive(Error, Debug)]
 pub enum BenchmarkError {
-    #[error("Data collection failed from {source}: {details}")]
-    DataCollection { source: String, details: String },
+    #[error("Data collection failed from {data_source}: {details}")]
+    DataCollection { data_source: String, details: String },
+    
+    #[error("Data loading failed: {0}")]
+    DataLoading(String),
     
     #[error("API request failed: {url} - {status}: {message}")]
     ApiRequest { url: String, status: u16, message: String },
@@ -36,11 +40,11 @@ pub enum BenchmarkError {
     #[error("Configuration error: {parameter} - {issue}")]
     Configuration { parameter: String, issue: String },
     
-    #[error("I/O error: {operation} - {source}")]
-    Io { operation: String, source: std::io::Error },
+    #[error("I/O error: {operation}")]
+    Io { operation: String, #[source] source: std::io::Error },
     
-    #[error("Serialization error: {context} - {source}")]
-    Serialization { context: String, source: serde_json::Error },
+    #[error("Serialization error: {context}")]
+    Serialization { context: String, #[source] source: serde_json::Error },
     
     #[error("Timeout exceeded: {operation} took longer than {timeout_seconds}s")]
     Timeout { operation: String, timeout_seconds: u64 },
@@ -52,8 +56,7 @@ pub enum BenchmarkError {
     MissingDependency { tool: String },
 }
 
-/// Result type alias for benchmark operations
-pub type BenchmarkResult<T> = Result<T, BenchmarkError>;
+// Note: BenchmarkResult struct is defined in lib.rs for the main benchmark result
 
 /// Error recovery strategies and context
 impl BenchmarkError {
@@ -87,8 +90,8 @@ impl BenchmarkError {
     /// Get user-friendly error message with suggested actions
     pub fn user_message(&self) -> String {
         match self {
-            BenchmarkError::DataCollection { source, .. } => {
-                format!("Failed to collect data from {}. Check network connection and API tokens.", source)
+            BenchmarkError::DataCollection { data_source, .. } => {
+                format!("Failed to collect data from {}. Check network connection and API tokens.", data_source)
             }
             BenchmarkError::RateLimit { service, retry_after_seconds } => {
                 format!("Rate limited by {}. Will retry in {}s. Consider using API tokens for higher limits.", service, retry_after_seconds)
@@ -138,7 +141,7 @@ impl From<reqwest::Error> for BenchmarkError {
             }
         } else {
             BenchmarkError::DataCollection {
-                source: "HTTP client".to_string(),
+                data_source: "HTTP client".to_string(),
                 details: err.to_string(),
             }
         }

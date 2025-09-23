@@ -1,12 +1,12 @@
 # Implementation Plan
 
-- [-] 1. Create basic CLI structure
+- [x] 1. Create basic CLI structure
   - Set up `src/bin/benchmark.rs` with clap for argument parsing
   - Add `src/lib.rs` with main benchmark function
   - Update `Cargo.toml` with dependencies: clap, flate2, anyhow
   - _Requirements: 6.1, 6.2_
 
-- [ ] 2. Implement data loading
+- [-] 2. Implement data loading
   - Create function to load files from directory (max 100MB)
   - Create function to generate 20MB test data if no path given
   - Add simple file reading with size limits
