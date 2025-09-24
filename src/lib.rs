@@ -2,6 +2,7 @@
 pub mod errors;
 pub mod data_loader;
 pub mod compression;
+pub mod decision;
 
 // Re-export error types and data loading functionality
 pub use errors::BenchmarkError;
