@@ -1,0 +1,13 @@
+Compression Benchmark Results
+================================
+
+Reducto Mode 3:
+  Ratio: 3.33x
+  Time : 141 ms
+
+Gzip (lvl6):
+  Ratio: 202.12x
+  Time : 294 ms
+
+Recommendation: NotRecommended
+Reason: Compression ratio improvement insufficient

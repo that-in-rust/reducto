@@ -1,17 +1,6 @@
 // BenchmarkError extended with Timeout
 use thiserror::Error;
 
-#[derive(Error, Debug)]
-pub enum BenchmarkError {
-    #[error("Data loading error: {0}")]
-    DataLoading(String),
-    #[error("Benchmark timed out after {0} seconds")]
-    Timeout(u64),
-    #[error("Other error: {0}")]
-    Other(String),
-}
-
-use thiserror::Error;
 use std::time::Duration;
 
 /// Comprehensive error hierarchy for the benchmark system

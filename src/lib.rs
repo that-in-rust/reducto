@@ -5,6 +5,8 @@ pub mod compression;
 pub mod decision;
 pub mod formatter;
 
+use crate::compression::CompressionTester;
+
 // Re-export error types and data loading functionality
 pub use errors::BenchmarkError;
 pub use data_loader::{LoadedData, DataSource, load_data};
@@ -66,34 +68,42 @@ pub async fn run_benchmark(
                  loaded_data.total_size as f64 / (1024.0 * 1024.0));
     }
     
-    // TODO: Implement the remaining benchmark logic in subsequent tasks
-    // - Data analysis and redundancy detection
-    // - Compression testing (gzip vs Reducto Mode 3)
-    // - Performance comparison and recommendation
-    
-    let recommendation = match &loaded_data.source {
-        DataSource::Directory(path) => {
-            format!("Data loaded from {}: {} files, {:.1}MB total. Compression testing not yet implemented.", 
-                    path.display(), loaded_data.file_count, 
-                    loaded_data.total_size as f64 / (1024.0 * 1024.0))
-        }
-        DataSource::Generated => {
-            format!("Generated {:.1}MB of test data. Compression testing not yet implemented.", 
-                    loaded_data.total_size as f64 / (1024.0 * 1024.0))
-        }
-    };
-    
-    let result = BenchmarkResult {
-        recommendation,
-        is_recommended: false,
-        details: format!("Data loading complete. {} bytes loaded from {} files.", 
-                        loaded_data.total_size, loaded_data.file_count),
-    };
-    
-    if verbose {
-        println!("=== Data Loading Complete ===");
+// --- Compression tests ---
+    if verbose { println!("Running gzip test..."); }
+    let gzip_tester = crate::compression::GzipTester::default();
+    let gzip_result = gzip_tester.test(&loaded_data.data)
+        .map_err(|e| BenchmarkError::AnalysisFailed { details: e.to_string() })?;
+
+    if verbose { println!("Running Reducto Mode 3 test (mock)..."); }
+    let reducto_tester = crate::compression::ReductoMockTester::default();
+    let reducto_result = reducto_tester.test(&loaded_data.data)
+        .map_err(|e| BenchmarkError::AnalysisFailed { details: e.to_string() })?;
+
+    // --- Decision engine ---
+    let rec = crate::decision::compare_results(&reducto_result, &gzip_result);
+    let is_recommended = rec.decision == crate::decision::Decision::Recommended;
+
+    // --- Output formatting ---
+    let report = crate::formatter::format_console(&reducto_result, &gzip_result, &rec);
+    println!("{}", report);
+    if let Err(e) = crate::formatter::save_report(&_output_path, &report) {
+        eprintln!("Warning: failed to save report: {}", e);
     }
-    
+
+    let result = BenchmarkResult {
+        recommendation: if is_recommended {
+            "RECOMMENDED: Use Reducto Mode 3".into()
+        } else {
+            "NOT RECOMMENDED: Stick with gzip".into()
+        },
+        is_recommended,
+        details: rec.reason.clone(),
+    };
+
+    if verbose {
+        println!("=== Benchmark Complete ===");
+    }
+
     Ok(result)
 }
 

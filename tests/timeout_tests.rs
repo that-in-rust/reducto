@@ -11,7 +11,7 @@ async fn test_global_timeout_triggers() {
     }).await;
     match res {
         Err(_) => (), // outer timeout triggered
-        Ok(Err(BenchmarkError::Timeout(_))) => (),
+Ok(Err(BenchmarkError::Timeout { .. }))
         _ => panic!("Expected timeout"),
     }
 }

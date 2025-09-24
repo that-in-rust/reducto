@@ -1,4 +1,26 @@
-# Reducto Mode 3
+# Reducto Mode 3 v0.2
+
+> **Essence**: Reducto turns large, repetitive data into tiny instruction sets using reference–based compression.  
+> **Why now?** Storage & bandwidth costs scale faster than Moore’s law—dedupe the delta, not the whole file.  
+> **Proof in 60 s**: `cargo run --bin benchmark` gives a YES/NO answer on your data.
+
+```mermaid
+flowchart LR
+    A[Your Files] -- ≤100 MB sample --> B[Benchmark CLI]
+    B --> C[Gzip Test] & D[Reducto Test]
+    C & D --> E{Decision Engine}
+    E -- "Ratio & Speed OK" --> R[RECOMMENDED]
+    E -- else --> N[NOT RECOMMENDED]
+```
+
+<details>
+<summary>How the benchmark decided (run 2025-09-24)</summary>
+
+See `docs/benchmark_report_v0.2.md` for full numbers & pie-charts.
+
+</details>
+
+---
 
 Differential compression system using Content-Defined Chunking (CDC) and Reference Corpora. Achieves 10x-100x compression ratios for data with high redundancy patterns.
 

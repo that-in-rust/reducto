@@ -1,5 +1,14 @@
 //! # Reducto Enterprise CLI
-//!
+// Reducto Enterprise CLI
+#![cfg(feature = "enterprise")]
+
+#[cfg(not(feature = "enterprise"))]
+fn main() {
+    eprintln!("Reducto enterprise CLI requires compiling with --features enterprise");
+}
+
+#[cfg(feature = "enterprise")]
+//
 //! Command-line interface for Reducto Mode 3 differential synchronization compression system.
 //! Provides comprehensive corpus management, compression/decompression operations, and
 //! enterprise integration capabilities.

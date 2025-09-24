@@ -47,17 +47,14 @@ async fn main() -> Result<()> {
         args.output.clone(),
         args.verbose,
     );
-    let result = match tokio::time::timeout(std::time::Duration::from_secs(args.timeout), fut).await {
+let result = match tokio::time::timeout(std::time::Duration::from_secs(args.timeout), fut).await {
         Ok(Ok(r)) => Ok(r),
         Ok(Err(e)) => Err(e),
-        Err(_) => Err(compression_benchmark_suite::BenchmarkError::Timeout(args.timeout)),
+        Err(_) => Err(compression_benchmark_suite::BenchmarkError::Timeout {
+            operation: "benchmark".to_string(),
+            timeout_seconds: args.timeout,
+        }),
     }?;
-    let result = compression_benchmark_suite::run_benchmark(
-        args.data_path,
-        args.timeout,
-        args.output,
-        args.verbose,
-    ).await?;
     
     // Print the final recommendation
     println!("\n{}", result.recommendation);
