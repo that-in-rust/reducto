@@ -24,6 +24,19 @@ See `docs/benchmark_report_v0.2.md` for full numbers & pie-charts.
 
 ---
 
+## v0.1 Snapshot
+
+| Capability | v0.1 | Planned |
+|---|---|---|
+| Benchmark CLI (`benchmark`) | Available | — |
+| Timestamped artifact script (`scripts/build_reducto.sh`) | Available | — |
+| CDC-based differential pipeline | — | Planned |
+| Corpus management CLI | — | Planned |
+| Compression/Decompression CLI (`reducto ...`) | — | Planned |
+| Monitoring/Metrics (Prometheus/Grafana) | — | Planned |
+| Security (signing, encryption, audit) | — | Planned |
+| Configurable deployment & SDK/API | — | Planned |
+| Configurable deployment & SDK/API | — | Planned |
 Differential compression system using Content-Defined Chunking (CDC) and Reference Corpora. Achieves 10x-100x compression ratios for data with high redundancy patterns.
 
 **How it works**: Like a master librarian who notices that 90% of new books contain chapters already written, Reducto builds a reference collection of data patterns. Instead of storing redundant information, it simply notes "page 47 of reference volume XII." The result: your 2GB VM image becomes a 20MB instruction set.
