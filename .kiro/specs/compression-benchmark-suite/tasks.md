@@ -32,7 +32,7 @@
   - Add simple cost savings calculation
   - _Requirements: 2.5, 2.6, 4.1, 4.2_
 
-- [ ] 6. Add output formatting
+- [x] 6. Add output formatting
   - Print results to console in simple text format
   - Save results to benchmark_results.txt
   - Include timing, ratios, and recommendation
