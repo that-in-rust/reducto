@@ -31,19 +31,14 @@ Differential compression system using Content-Defined Chunking (CDC) and Referen
 ## Quick Start
 
 ```bash
-# Install from source
-git clone https://github.com/that-in-rust/reducto.git
-cd reducto
-cargo build --release
+# Run on generated sample (20MB)
+cargo run --bin benchmark
 
-# Build reference corpus
-reducto corpus build --input /data/reference --output corpus.rc
+# Run on your data (≤ 100 MB)
+cargo run --bin benchmark /path/to/data
 
-# Compress file
-reducto compress --input file.img --corpus corpus.rc --output file.reducto
-
-# Decompress
-reducto decompress --input file.reducto --output restored.img
+# Verbose, custom timeout and report path
+cargo run --bin benchmark -- --verbose --timeout 60 --output results.txt
 ```
 
 ## Use Cases
@@ -141,127 +136,55 @@ graph TD
 ```
 
 ```bash
-# From source
-cargo install reducto
+# Build the benchmark binary
+cargo build --release --bin benchmark
 
-# Pre-built binary
-wget https://github.com/your-org/reducto/releases/latest/download/reducto-linux-x64.tar.gz
-tar -xzf reducto-linux-x64.tar.gz && sudo mv reducto /usr/local/bin/
+# Run it
+target/release/benchmark --help
+cargo run --bin benchmark -- --verbose
 
-# Docker
-docker pull reducto/enterprise:latest
+# Produce a timestamped artifact
+./scripts/build_reducto.sh
 ```
 
 **Requirements**: 4+ cores, 8GB RAM, 100GB storage
 
-## Commands
+## Commands (Available in v0.1)
 
-**Corpus Management**
 ```bash
-reducto corpus build --input /data --output corpus.rc
-reducto corpus analyze --corpus corpus.rc --test-data /test
-reducto corpus verify --corpus corpus.rc
+# Run on generated sample (20MB)
+cargo run --bin benchmark
+
+# Run on your data (≤ 100 MB)
+cargo run --bin benchmark /path/to/data
+
+# Verbose, custom timeout and report path
+cargo run --bin benchmark -- --verbose --timeout 60 --output results.txt
 ```
 
-**Compression/Decompression**
-```bash
-reducto compress --input file.img --corpus corpus.rc --output file.reducto
-reducto decompress --input file.reducto --output restored.img
-```
+## Integration (Planned)
 
-**Analysis**
-```bash
-reducto analyze --input file.img --corpus corpus.rc --report-format json
-reducto benchmark --input /dataset --corpus corpus.rc
-```
+Status: Planned for a future release. See Future Backlog.
 
-## Integration
+## Monitoring (Planned)
 
-**CI/CD Pipeline**
-```yaml
-- name: Compress artifacts
-  run: reducto compress --input build/ --corpus ${{ secrets.CORPUS_URL }} --output artifacts.reducto
-```
+Status: Planned for a future release. See Future Backlog.
 
-**Docker**
-```dockerfile
-RUN reducto compress --input /data --corpus /corpus.rc --output /compressed.reducto
-```
+## Security (Planned)
 
-**Backup Scripts**
-```bash
-reducto compress --input /data --corpus backup.rc --output backup.reducto
-rsync backup.reducto backup-server:/backups/
-```
+Status: Planned for a future release. See Future Backlog.
 
-## Monitoring
+## Configuration (Planned)
 
-**Prometheus Metrics**
-- `reducto_compression_ratio`
-- `reducto_corpus_hit_rate` 
-- `reducto_throughput_mbps`
-- `reducto_bandwidth_saved_bytes_total`
+Status: Planned for a future release. See Future Backlog.
 
-**Grafana Dashboard**: Import `monitoring/grafana-dashboard.json`
+## Troubleshooting (Planned)
 
-## Security
+Status: Planned for a future release. See Future Backlog.
 
-- **Signing**: Ed25519 signatures for corpus integrity
-- **Encryption**: AES-GCM for data protection  
-- **Audit Logging**: Comprehensive access logging
-- **Compliance**: SOC 2, GDPR, HIPAA support
+## API (Planned)
 
-## Configuration
-
-```toml
-[corpus]
-repositories = ["https://corpus.company.com/api/v1"]
-cache_dir = "/var/cache/reducto"
-max_cache_size = "50GB"
-
-[compression]
-chunk_size = 8192
-compression_level = 19
-
-[security]
-signing_key_path = "/etc/reducto/keys/signing.key"
-encryption_enabled = true
-```
-
-## Troubleshooting
-
-**Low compression ratios**: Rebuild corpus with target data
-```bash
-reducto corpus build --input target-dataset/ --optimize --output new-corpus.rc
-```
-
-**High memory usage**: Enable memory mapping
-```bash
-reducto config set corpus.memory_mapped true
-```
-
-**Slow decompression**: Pre-fetch corpus locally
-```bash
-reducto corpus fetch --corpus-id golden-v1 --local-cache
-```
-
-## API
-
-**REST Endpoint**
-```http
-POST /api/v1/compress
-{
-  "file": <binary data>,
-  "corpus_id": "golden-v1"
-}
-```
-
-**Python SDK**
-```python
-import reducto
-client = reducto.Client("https://reducto.company.com", "api-key")
-result = client.compress(data, corpus_id="golden-v1")
-```
+Status: Planned for a future release. See Future Backlog.
 
 ## License
 
