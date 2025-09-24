@@ -40,7 +40,18 @@ async fn main() -> Result<()> {
         println!("Output file: {}", args.output.display());
     }
     
-    // Run the main benchmark function
+// Enforce global 60-second timeout
+    let fut = compression_benchmark_suite::run_benchmark(
+        args.data_path,
+        args.timeout,
+        args.output.clone(),
+        args.verbose,
+    );
+    let result = match tokio::time::timeout(std::time::Duration::from_secs(args.timeout), fut).await {
+        Ok(Ok(r)) => Ok(r),
+        Ok(Err(e)) => Err(e),
+        Err(_) => Err(compression_benchmark_suite::BenchmarkError::Timeout(args.timeout)),
+    }?;
     let result = compression_benchmark_suite::run_benchmark(
         args.data_path,
         args.timeout,

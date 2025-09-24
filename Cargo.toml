@@ -29,6 +29,13 @@ sha2 = "0.10"
 # Error handling
 thiserror = "1.0"
 anyhow = "1.0"
+console = "0.15"
+dialoguer = "0.10"
+dirs = "5.0"
+log = "0.4"
+env_logger = "0.10"
+toml = "0.8"
+num_cpus = "1.16"
 
 # Time and date
 chrono = { version = "0.4", features = ["serde"] }
