@@ -1,8 +1,10 @@
-# Reducto Mode 3 v0.2
+# Reducto Mode 3 v0.1
 
 > **Essence**: Reducto turns large, repetitive data into tiny instruction sets using reference–based compression.  
 > **Why now?** Storage & bandwidth costs scale faster than Moore’s law—dedupe the delta, not the whole file.  
 > **Proof in 60 s**: `cargo run --bin benchmark` gives a YES/NO answer on your data.
+> 
+> **Status (v0.1)**: We tried; we’re not there yet. On our sample, the mock Reducto path does not beat gzip. We’re focusing next on the CDC + corpus pipeline described in the backlog below.
 
 ```mermaid
 flowchart LR
@@ -130,6 +132,13 @@ graph TD
 ```
 
 ## Installation
+
+### Build a timestamped binary artifact
+
+```bash
+./scripts/build_reducto.sh
+# Produces ./dist/reducto-v-YYYYMMDDHHSS
+```
 
 ```bash
 # From source
@@ -261,3 +270,21 @@ Apache 2.0 License for open source use. Enterprise license available with additi
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## Future Backlog (Low‑drama summary)
+
+We’ll differentiate Reducto by leaning into differential compression rather than general compression:
+
+- Decision Gate (DAS): a fast “Differential Advantage Score” predicts when cross‑file reuse will pay off; fallback to gzip/zstd otherwise.
+- Multi‑scale CDC: stable chunk boundaries at small and large scales to tolerate inserts/deletes while capturing long runs.
+- Global Index: locality‑aware reference lookup with collision‑safe hashing and a small in‑memory hotset.
+- Residuals with Trained Dictionaries: zstd residuals improved via small trained dicts and long‑range mode where useful.
+- Domain‑aware Anchors: lightweight boundary biasing around structural tokens in code/logs (no heavy parsing).
+
+Expected outcomes on strong‑fit data (code/logs/container layers):
+- Ratio uplift vs gzip: ~2–5× on code/logs; higher where base layers are shared.
+- Speed: within practical bounds (≤3× gzip on compression; ≥0.5× on decompression).
+
+More detail in WARPOption01*.md (repo root). We’ll ship iteratively and measure hit‑rate, ratio, and time budget in CI.
